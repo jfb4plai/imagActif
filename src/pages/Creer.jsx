@@ -82,7 +82,7 @@ export default function Creer({ brouillon, setBrouillon, compte, usage, regime, 
         <div>
           <div className="plai-card img-warn">
             <p>
-              Le texte de la description part chez BFL (serveur européen). N'y mettez aucun nom ni aucune donnée d'élève.
+              Le texte de la description part chez BFL (société allemande, point d'accès européen). N'y mettez aucun nom ni aucune donnée d'élève.
             </p>
           </div>
           <button type="button" className="plai-btn" style={{ marginTop: '1rem' }} disabled={bloque} onClick={lancer}>
