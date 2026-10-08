@@ -11,7 +11,7 @@ export const MESSAGES = {
   key_unreadable: "Votre clé n'a pas pu être lue. Ajoutez-la à nouveau dans « Mes données ».",
   moderated: "BFL a refusé ce contenu. Reformulez la description. Cette tentative n'est pas décomptée de votre quota d'essai.",
   failed: "La génération a échoué chez BFL. Réessayez. Cette tentative n'est pas décomptée de votre quota d'essai.",
-  timeout: "La génération prend plus de temps que prévu. Elle apparaîtra dans l'historique si elle aboutit.",
+  timeout: "La génération prend plus de temps que prévu. Ouvrez l'Historique : elle y sera finalisée si elle aboutit (dans les 5 minutes).",
   provider_error: 'Le service d\'images ne répond pas correctement. Réessayez plus tard.',
   invalid_json: 'Le contenu envoyé est invalide.',
   invalid_parent: "L'image d'origine est introuvable.",

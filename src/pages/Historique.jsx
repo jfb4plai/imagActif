@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import CarteImage from '../components/CarteImage.jsx'
 import { api } from '../lib/api.js'
 import { listerGenerations, urlsSignees, urlTelechargement } from '../lib/data.js'
@@ -18,6 +18,28 @@ export default function Historique({ ouvrirDansCreer }) {
     }
   }, [])
   useEffect(() => { charger() }, [charger])
+
+  // Suivi des générations en cours : une seule minuterie, active seulement s'il reste une carte « pending ».
+  const idsEnCours = (generations ?? []).filter((g) => g.status === 'pending').map((g) => g.id).join(',')
+  const enCoursRef = useRef('')
+  enCoursRef.current = idsEnCours
+  useEffect(() => {
+    if (!idsEnCours) return undefined
+    let actif = true
+    let occupe = false
+    const minuterie = setInterval(async () => {
+      if (occupe) return
+      occupe = true
+      try {
+        const ids = enCoursRef.current.split(',').filter(Boolean)
+        const etats = await Promise.all(ids.map((id) => api.statut(id).then((s) => s.status).catch(() => 'pending')))
+        if (actif && etats.some((s) => s !== 'pending')) await charger()
+      } finally {
+        occupe = false
+      }
+    }, 3000)
+    return () => { actif = false; clearInterval(minuterie) }
+  }, [idsEnCours, charger])
 
   async function telecharger(gen) {
     try {

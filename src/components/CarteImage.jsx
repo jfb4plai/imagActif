@@ -28,7 +28,7 @@ export default function CarteImage({ gen, url, onVariante, onTelecharger, onSupp
       {gen.status === 'done' && !gen.image_path && (
         <p className="plai-banner">Image supprimée le {dateFr(gen.image_deleted_at ?? gen.image_expires_at)}. Le JSON est conservé : vous pouvez la régénérer.</p>
       )}
-      {gen.status === 'pending' && <p className="plai-banner">Création en cours…</p>}
+      {gen.status === 'pending' && <p className="plai-banner">Création en cours… (mise à jour automatique)</p>}
       {(gen.status === 'failed' || gen.status === 'refused') && (
         <p className="plai-banner">{gen.status === 'refused' ? 'Refusée par BFL.' : 'Échec de la génération.'}</p>
       )}
