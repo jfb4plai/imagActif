@@ -9,3 +9,8 @@ textarea.plai-input { min-height: 4.5rem; resize: vertical; }
 .img-split { display: grid; gap: 1.5rem; grid-template-columns: 1fr; }
 @media (min-width: 900px) { .img-split { grid-template-columns: 1fr 1fr; } }
 .img-warn { border-left: 4px solid #f97316; padding-left: 0.75rem; }
+
+.img-avance > summary { cursor: pointer; font-size: 1.1rem; padding: 0.5rem 0; }
+.img-avance-groupe { border: 0; border-top: 1px solid var(--border); margin: 1rem 0 0; padding: 0.5rem 0 0; min-width: 0; }
+.img-avance-groupe legend { padding: 0; }
+.img-avance-groupe h3 { font-size: 1.05rem; margin: 0; }
