@@ -27,7 +27,7 @@ export default function CarteImage({ gen, url, onVariante, onTelecharger, onSupp
       {aImage && url && <img src={url} alt={`Image générée : ${sujet}`} />}
       {aImage && url && <p className="plai-help">Image générée par IA, à relire avant usage en classe.</p>}
       {gen.status === 'done' && !gen.image_path && (
-        <p className="plai-banner">Image supprimée le {dateFr(gen.image_deleted_at ?? gen.image_expires_at)}. Le JSON est conservé : vous pouvez la régénérer.</p>
+        <p className="plai-banner">Image supprimée le {dateFr(gen.image_deleted_at ?? gen.image_expires_at)}. Le JSON est conservé : vous pouvez refaire une image à partir de lui (même sujet et même style, mais pas une copie identique).</p>
       )}
       {gen.status === 'pending' && <p className="plai-banner">Création en cours… (mise à jour automatique)</p>}
       {(gen.status === 'failed' || gen.status === 'refused') && (
@@ -47,7 +47,7 @@ export default function CarteImage({ gen, url, onVariante, onTelecharger, onSupp
         {aImage && <button type="button" className="plai-btn" onClick={onTelecharger}>Télécharger</button>}
         {gen.status === 'done' && (
           <button type="button" className="plai-btn plai-btn-ghost" onClick={onVariante}>
-            {aImage ? 'Faire une variante' : 'Régénérer'}
+            {aImage ? 'Faire une variante' : 'Refaire une image'}
           </button>
         )}
         <button type="button" className="plai-btn plai-btn-ghost" onClick={copierJson}>Copier le JSON</button>

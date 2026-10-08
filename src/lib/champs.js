@@ -51,7 +51,7 @@ export const CHAMPS = [
   {
     path: 'exclusions', label: 'À éviter', type: 'liste',
     placeholder: "pas de texte dans l'image\nvisages réalistes",
-    aide: "Une chose par ligne. Les modèles d'images écrivent mal : « pas de texte dans l'image » est conseillé, ajoutez votre texte dans votre document. Ces consignes sont des demandes, pas des garanties : l'IA peut ne pas les respecter à 100 %.",
+    aide: "Une chose par ligne. Les modèles d'images écrivent mal : « pas de texte dans l'image » est conseillé, ajoutez votre texte dans votre document. Ces consignes sont des demandes, pas des garanties : lors de nos essais, des images à l'aquarelle ont reçu une fausse signature malgré « pas de texte dans l'image ». Relisez chaque image avant de l'utiliser.",
   },
   {
     path: 'format.ratio', label: "Format de l'image", type: 'ratio',
@@ -60,7 +60,7 @@ export const CHAMPS = [
   {
     path: 'generation.seed', label: 'Graine (facultatif)', type: 'seed',
     placeholder: 'laisser vide pour une image nouvelle',
-    aide: "Un nombre qui fixe le « tirage au sort » de l'IA. Même graine et mêmes champs : image très proche. Changez un seul champ en gardant la graine pour obtenir une variante proche. Laissez vide pour une image toute nouvelle.",
+    aide: "Un nombre transmis à l'IA pour orienter son « tirage au sort ». Lors de nos essais (octobre 2026), une même graine avec les mêmes champs a donné des images au même sujet et au même style, mais pas identiques : cadrage et décor changeaient. Ne comptez donc pas sur elle pour retrouver exactement une image. Laissez vide pour une image toute nouvelle.",
   },
   {
     path: 'personnalise', label: 'Champs personnalisés', type: 'custom',
