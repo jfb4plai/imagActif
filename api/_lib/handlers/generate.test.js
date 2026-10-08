@@ -60,6 +60,19 @@ describe('POST /api/generate : garde-fous', () => {
       expect(res.code).toBe(400)
     }
   })
+  it('400 invalid_json si le prompt dépasse 4000 caractères, sans quota ni appel BFL', async () => {
+    const g = gabarit()
+    g.elements = Array.from({ length: 15 }, (_, i) => ({ nom: `e${i}`, position: '', details: 'd'.repeat(500) }))
+    g.textes = Array.from({ length: 10 }, () => ({ contenu: 'c'.repeat(500), position: '', style: '' }))
+    const d = deps()
+    const res = makeRes()
+    await createGenerateHandler(d)(req({ gabarit: g }), res)
+    expect(res.code).toBe(400)
+    expect(res.body.code).toBe('invalid_json')
+    expect(res.body.error).toMatch(/^La description est trop longue \(\d+ caractères sur 4000\) : raccourcissez-la\.$/)
+    expect(d.repo.reserveQuota).not.toHaveBeenCalled()
+    expect(d.bfl.submit).not.toHaveBeenCalled()
+  })
   it('400 si l\'image d\'origine n\'appartient pas à l\'utilisateur', async () => {
     const res = makeRes()
     await createGenerateHandler(deps())(req({ gabarit: gabarit(), parentId: ID }), res)
