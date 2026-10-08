@@ -5,9 +5,11 @@ export function imageExpiry(depuis = new Date()) {
   return new Date(depuis.getTime() + IMAGE_RETENTION_DAYS * JOUR_MS)
 }
 
-export function joursRestants(expiration, now = new Date()) {
+// `max` plafonne le résultat à la durée prévue : l'horloge de la base peut avancer de quelques secondes sur celle du navigateur,
+// et l'arrondi vers le haut afficherait sinon « 31 jours » pour une image de 30 jours.
+export function joursRestants(expiration, now = new Date(), max = Infinity) {
   const ms = new Date(expiration).getTime() - now.getTime()
-  return Math.max(0, Math.ceil(ms / JOUR_MS))
+  return Math.min(max, Math.max(0, Math.ceil(ms / JOUR_MS)))
 }
 
 export function niveauUrgence(jours) {

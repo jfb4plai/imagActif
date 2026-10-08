@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import EnregistrerModele from './EnregistrerModele.jsx'
-import { joursRestants, niveauUrgence } from '../lib/dates.js'
+import { joursRestants, niveauUrgence, IMAGE_RETENTION_DAYS } from '../lib/dates.js'
 
 const dateFr = (iso) => new Date(iso).toLocaleDateString('fr-BE', { day: 'numeric', month: 'long', year: 'numeric' })
 
@@ -19,7 +19,7 @@ export default function CarteImage({ gen, url, onVariante, onTelecharger, onSupp
   }
 
   const aImage = gen.status === 'done' && gen.image_path
-  const jours = aImage ? joursRestants(gen.image_expires_at) : 0
+  const jours = aImage ? joursRestants(gen.image_expires_at, new Date(), IMAGE_RETENTION_DAYS) : 0
   const urgence = aImage ? niveauUrgence(jours) : null
 
   return (

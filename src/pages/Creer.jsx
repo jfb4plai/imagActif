@@ -7,7 +7,7 @@ import { api } from '../lib/api.js'
 import { getGeneration, urlsSignees } from '../lib/data.js'
 import { validerPourGeneration } from '../lib/gabarit.js'
 import { messageErreur } from '../lib/messages.js'
-import { joursRestants } from '../lib/dates.js'
+import { joursRestants, IMAGE_RETENTION_DAYS } from '../lib/dates.js'
 import { getIn, setIn } from '../lib/path.js'
 
 const ATTENTE_MAX_MS = 120000
@@ -96,7 +96,7 @@ export default function Creer({ brouillon, setBrouillon, compte, usage, regime, 
             <div className="plai-card img-card" style={{ marginTop: '1rem' }}>
               <img src={resultat.url} alt={`Image générée : ${resultat.gen.json.sujet.description}`} />
               <p className="plai-help">
-                Image générée par IA, à relire avant usage en classe. Elle sera supprimée dans {joursRestants(resultat.gen.image_expires_at)} jours :
+                Image générée par IA, à relire avant usage en classe. Elle sera supprimée dans {joursRestants(resultat.gen.image_expires_at, new Date(), IMAGE_RETENTION_DAYS)} jours :
                 téléchargez-la depuis l'Historique si vous voulez la garder. Le JSON, lui, reste.
               </p>
               <div className="img-actions">

@@ -1,4 +1,5 @@
 import { joursRestants } from '../lib/dates.js'
+import { TRIAL_DAYS } from '../lib/regime.js'
 import { trialEnd } from '../lib/regime.js'
 
 const LIMITE = Number(import.meta.env.VITE_TRIAL_DAILY_LIMIT) || 10
@@ -8,7 +9,7 @@ export default function BandeauRegime({ regime, compte, usage }) {
     return <div className="plai-banner">Vous utilisez votre clé BFL personnelle : les images sont facturées par BFL sur votre compte.</div>
   }
   if (regime === 'trial') {
-    const jours = joursRestants(trialEnd(compte.trial_started_at))
+    const jours = joursRestants(trialEnd(compte.trial_started_at), new Date(), TRIAL_DAYS)
     const reste = Math.max(LIMITE - usage, 0)
     return (
       <div className="plai-banner">
