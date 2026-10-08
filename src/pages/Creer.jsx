@@ -19,7 +19,7 @@ export default function Creer({ brouillon, setBrouillon, compte, usage, regime, 
   const [resultat, setResultat] = useState(null)
   const [modele, setModele] = useState(false)
   const actif = useRef(true)
-  useEffect(() => () => { actif.current = false }, [])
+  useEffect(() => { actif.current = true; return () => { actif.current = false } }, [])
 
   const majGabarit = (gabarit) => setBrouillon({ ...brouillon, gabarit })
 
