@@ -65,7 +65,7 @@ export const CHAMPS = [
   {
     path: 'couleurs.saturation', label: 'Couleurs : saturation', type: 'texte', avance: true, section: 'Couleurs',
     placeholder: 'couleurs douces, peu saturées',
-    aide: "Intensité des couleurs : vives pour une image qui attire l'oeil, douces pour une image calme et peu chargée.",
+    aide: "Intensité des couleurs : vives pour une image qui attire l'œil, douces pour une image calme et peu chargée.",
   },
   {
     path: 'couleurs.contraste', label: 'Couleurs : contraste', type: 'texte', avance: true, section: 'Couleurs',
