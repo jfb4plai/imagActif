@@ -9,8 +9,10 @@ function telecharger(blob, nom) {
   const lien = document.createElement('a')
   lien.href = URL.createObjectURL(blob)
   lien.download = nom
+  document.body.appendChild(lien)
   lien.click()
-  URL.revokeObjectURL(lien.href)
+  document.body.removeChild(lien)
+  setTimeout(() => URL.revokeObjectURL(lien.href), 1000)
 }
 
 export default function MesDonnees({ compte, regime, recharger, signOut }) {

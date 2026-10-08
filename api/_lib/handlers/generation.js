@@ -1,3 +1,4 @@
+import { UUID_RE } from '../uuid.js'
 export function createGenerationHandler({ requireUser, repo }) {
   return async function handler(req, res) {
     res.setHeader('Cache-Control', 'no-store')
@@ -6,6 +7,7 @@ export function createGenerationHandler({ requireUser, repo }) {
     if (!user) return
     const id = String(req.query?.id ?? '')
     if (!id) return res.status(400).json({ error: 'Identifiant manquant.' })
+    if (!UUID_RE.test(id)) return res.status(400).json({ error: 'Identifiant invalide.' })
     const gen = await repo.getGeneration(id, user.id)
     if (!gen) return res.status(404).json({ error: 'Image introuvable.' })
     if (gen.image_path) await repo.removeImages([gen.image_path]) // le fichier d'abord : sans la ligne, on ne saurait plus où il est

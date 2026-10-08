@@ -1,3 +1,4 @@
+import { UUID_RE } from '../uuid.js'
 import { imageExpiry } from '../../../src/lib/dates.js'
 import { ProviderError, extensionFor } from '../providers/bfl.js'
 import { cleApi } from '../resolveKey.js'
@@ -10,6 +11,7 @@ export function createStatusHandler({ requireUser, repo, bfl, dechiffrer, ring, 
     if (!user) return
     const id = String(req.query?.id ?? '')
     if (!id) return res.status(400).json({ error: 'Identifiant manquant.' })
+    if (!UUID_RE.test(id)) return res.status(400).json({ error: 'Identifiant invalide.' })
 
     const gen = await repo.getGeneration(id, user.id)
     if (!gen) return res.status(404).json({ error: 'Image introuvable.' })

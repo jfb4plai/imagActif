@@ -46,6 +46,7 @@ describe('bfl.poll', () => {
     expect(await poll({ status: 'Content Moderated' })).toEqual({ state: 'refused' })
     expect(await poll({ status: 'Error' })).toEqual({ state: 'failed' })
     expect(await poll({ status: 'Failed' })).toEqual({ state: 'failed' })
+    expect(await poll({ status: 'Task not found' })).toEqual({ state: 'failed' })
   })
   it('envoie la clé et refuse un domaine étranger', async () => {
     const fetchImpl = vi.fn(async () => reponse({ status: 'Pending' }))
@@ -64,6 +65,10 @@ describe('bfl.download', () => {
     expect(r.contentType).toBe('image/png')
     expect(r.buffer.length).toBe(3)
     expect(fetchImpl.mock.calls[0][1]).toBeUndefined()
+  })
+  it('refuse un contenu qui n\'est pas une image', async () => {
+    const fetchImpl = vi.fn(async () => reponse(new Uint8Array([1, 2, 3]), { headers: { 'content-type': 'text/html' } }))
+    await expect(createBfl({ fetchImpl }).download('https://delivery.bfl.ai/x.png')).rejects.toMatchObject({ code: 'provider_error' })
   })
   it('refuse http', async () => {
     await expect(createBfl({ fetchImpl: vi.fn() }).download('http://x.example/y.png')).rejects.toBeInstanceOf(ProviderError)

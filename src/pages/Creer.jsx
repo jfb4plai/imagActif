@@ -8,6 +8,7 @@ import { getGeneration, urlsSignees } from '../lib/data.js'
 import { validerPourGeneration } from '../lib/gabarit.js'
 import { messageErreur } from '../lib/messages.js'
 import { joursRestants } from '../lib/dates.js'
+import { getIn, setIn } from '../lib/path.js'
 
 const ATTENTE_MAX_MS = 120000
 const pause = (ms) => new Promise((r) => setTimeout(r, ms))
@@ -22,6 +23,10 @@ export default function Creer({ brouillon, setBrouillon, compte, usage, regime, 
   useEffect(() => { actif.current = true; return () => { actif.current = false } }, [])
 
   const majGabarit = (gabarit) => setBrouillon({ ...brouillon, gabarit })
+  // Un JSON importé ne doit pas écraser les champs verrouillés du modèle.
+  const importerGabarit = (importe) => majGabarit(
+    brouillon.verrous.reduce((g, chemin) => setIn(g, chemin, getIn(brouillon.gabarit, chemin)), importe),
+  )
 
   async function suivre(id) {
     const debut = Date.now()
@@ -72,7 +77,7 @@ export default function Creer({ brouillon, setBrouillon, compte, usage, regime, 
       <div className="img-split" style={{ marginTop: '1rem' }}>
         <div>
           <GabaritForm gabarit={brouillon.gabarit} onChange={majGabarit} verrous={brouillon.verrous} />
-          <JsonPanel gabarit={brouillon.gabarit} onImporter={majGabarit} />
+          <JsonPanel gabarit={brouillon.gabarit} onImporter={importerGabarit} />
         </div>
         <div>
           <div className="plai-card img-warn">

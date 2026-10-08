@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { createGenerateHandler } from './generate.js'
-import { makeRes, okAuth, noAuth, fakeRepo, fakeBfl, ACCOUNT, NOW, USER } from '../../../tests/helpers.js'
+import { makeRes, okAuth, noAuth, fakeRepo, fakeBfl, ACCOUNT, NOW, USER, ID } from '../../../tests/helpers.js'
 import { gabaritVide } from '../../../src/lib/gabarit.js'
 import { ProviderError } from '../providers/bfl.js'
 import { TERMS_VERSION } from '../../../src/lib/terms.js'
@@ -62,9 +62,17 @@ describe('POST /api/generate : garde-fous', () => {
   })
   it('400 si l\'image d\'origine n\'appartient pas à l\'utilisateur', async () => {
     const res = makeRes()
-    await createGenerateHandler(deps())(req({ gabarit: gabarit(), parentId: 'autre' }), res)
+    await createGenerateHandler(deps())(req({ gabarit: gabarit(), parentId: ID }), res)
     expect(res.code).toBe(400)
     expect(res.body.code).toBe('invalid_parent')
+  })
+  it('400 invalid_parent si parentId n\'est pas un UUID, sans accès base', async () => {
+    const d = deps()
+    const res = makeRes()
+    await createGenerateHandler(d)(req({ gabarit: gabarit(), parentId: 'autre' }), res)
+    expect(res.code).toBe(400)
+    expect(res.body.code).toBe('invalid_parent')
+    expect(d.repo.getGeneration).not.toHaveBeenCalled()
   })
   it('403 trial_over : essai terminé et pas de clé', async () => {
     const vieux = { ...ACCOUNT, trial_started_at: '2026-10-01T00:00:00Z' }
@@ -83,14 +91,14 @@ describe('POST /api/generate : essai', () => {
     const res = makeRes()
     await createGenerateHandler(d)(req(), res)
     expect(res.code).toBe(202)
-    expect(res.body).toEqual({ id: 'g1' })
+    expect(res.body).toEqual({ id: ID })
     expect(d.repo.reserveQuota).toHaveBeenCalledWith('u1', '2026-10-08', 10, 100)
     const ligne = d.repo.insertGeneration.mock.calls[0][0]
     expect(ligne).toMatchObject({ user_id: 'u1', seed: 4242, key_mode: 'trial', quota_day: '2026-10-08', model: 'flux-2-pro' })
     expect(ligne.json.generation.seed).toBe(4242)
     expect(ligne.prompt_text).toContain('Un chat roux.')
     expect(d.bfl.submit).toHaveBeenCalledWith({ apiKey: 'cle-jf', prompt: ligne.prompt_text, width: 1024, height: 1024, seed: 4242 })
-    expect(d.repo.insertJob).toHaveBeenCalledWith('g1', 'https://api.eu.bfl.ai/v1/get_result?id=b1')
+    expect(d.repo.insertJob).toHaveBeenCalledWith(ID, 'https://api.eu.bfl.ai/v1/get_result?id=b1')
   })
   it('conserve la graine fournie et le format demandé', async () => {
     const g = gabarit()
@@ -142,7 +150,7 @@ describe('POST /api/generate : essai', () => {
     await createGenerateHandler(d)(req(), res)
     expect(res.code).toBe(429)
     expect(res.body.code).toBe('rate_limited')
-    expect(d.repo.markFailed).toHaveBeenCalledWith('g1', 'failed')
+    expect(d.repo.markFailed).toHaveBeenCalledWith(ID, 'failed')
     expect(d.repo.refundQuota).toHaveBeenCalledWith('u1', '2026-10-08')
   })
   it('clé de JF absente : erreur propre et remboursement', async () => {

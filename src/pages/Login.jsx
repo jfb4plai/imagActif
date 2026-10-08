@@ -19,7 +19,11 @@ export default function Login() {
     setEnCours(true)
     if (mode === 'login') {
       const { error } = await signIn(email, password)
-      if (error) setErreur('E-mail ou mot de passe incorrect.')
+      if (error) {
+        setErreur(/Email not confirmed/i.test(error.message ?? '')
+          ? "Confirmez d'abord votre e-mail (lien reçu à l'inscription)."
+          : 'E-mail ou mot de passe incorrect.')
+      }
     } else if (mode === 'reset') {
       const { error } = await sendPasswordReset(email)
       if (error) setErreur(error.message)

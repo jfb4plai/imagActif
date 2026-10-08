@@ -1,11 +1,11 @@
 import { describe, it, expect, vi } from 'vitest'
 import { createStatusHandler } from './status.js'
-import { makeRes, okAuth, noAuth, fakeRepo, fakeBfl, NOW } from '../../../tests/helpers.js'
+import { makeRes, okAuth, noAuth, fakeRepo, fakeBfl, NOW, ID } from '../../../tests/helpers.js'
 import { ProviderError } from '../providers/bfl.js'
 
-const GEN = { id: 'g1', user_id: 'u1', status: 'pending', key_mode: 'trial', quota_day: '2026-10-08' }
-const JOB = { generation_id: 'g1', polling_url: 'https://api.eu.bfl.ai/v1/get_result?id=b1' }
-const req = (id = 'g1', method = 'GET') => ({ method, headers: {}, query: { id } })
+const GEN = { id: ID, user_id: 'u1', status: 'pending', key_mode: 'trial', quota_day: '2026-10-08' }
+const JOB = { generation_id: ID, polling_url: 'https://api.eu.bfl.ai/v1/get_result?id=b1' }
+const req = (id = ID, method = 'GET') => ({ method, headers: {}, query: { id } })
 
 function deps(over = {}, repoOver = {}) {
   return {
@@ -26,11 +26,19 @@ describe('GET /api/status', () => {
     await createStatusHandler(deps({ requireUser: noAuth }))(req(), res)
     expect(res.code).toBe(401)
     res = makeRes()
-    await createStatusHandler(deps())(req('g1', 'POST'), res)
+    await createStatusHandler(deps())(req(ID, 'POST'), res)
     expect(res.code).toBe(405)
     res = makeRes()
     await createStatusHandler(deps())({ method: 'GET', headers: {}, query: {} }, res)
     expect(res.code).toBe(400)
+  })
+  it('400 pour un identifiant qui n\'est pas un UUID, sans accès base', async () => {
+    const d = deps()
+    const res = makeRes()
+    await createStatusHandler(d)(req('pas-un-uuid'), res)
+    expect(res.code).toBe(400)
+    expect(res.body).toEqual({ error: 'Identifiant invalide.' })
+    expect(d.repo.getGeneration).not.toHaveBeenCalled()
   })
   it('404 pour une image qui n\'est pas à l\'utilisateur', async () => {
     const res = makeRes()
@@ -56,9 +64,9 @@ describe('GET /api/status', () => {
     await createStatusHandler(d)(req(), res)
     expect(res.body).toEqual({ status: 'done' })
     expect(bfl.poll).toHaveBeenCalledWith({ apiKey: 'cle-jf', pollingUrl: JOB.polling_url })
-    expect(d.repo.uploadImage).toHaveBeenCalledWith('u1/g1.png', expect.any(Buffer), 'image/png')
-    expect(d.repo.markDone).toHaveBeenCalledWith('g1', 'u1/g1.png', '2026-11-07T10:00:00.000Z')
-    expect(d.repo.deleteJob).toHaveBeenCalledWith('g1')
+    expect(d.repo.uploadImage).toHaveBeenCalledWith(`u1/${ID}.png`, expect.any(Buffer), 'image/png')
+    expect(d.repo.markDone).toHaveBeenCalledWith(ID, `u1/${ID}.png`, '2026-11-07T10:00:00.000Z')
+    expect(d.repo.deleteJob).toHaveBeenCalledWith(ID)
   })
   it('refus de modération : échec, quota remboursé', async () => {
     const bfl = fakeBfl({ poll: vi.fn(async () => ({ state: 'refused' })) })
@@ -66,7 +74,7 @@ describe('GET /api/status', () => {
     const res = makeRes()
     await createStatusHandler(d)(req(), res)
     expect(res.body).toEqual({ status: 'refused' })
-    expect(d.repo.markFailed).toHaveBeenCalledWith('g1', 'refused')
+    expect(d.repo.markFailed).toHaveBeenCalledWith(ID, 'refused')
     expect(d.repo.refundQuota).toHaveBeenCalledWith('u1', '2026-10-08')
   })
   it('échec BFL en clé personnelle : pas de remboursement', async () => {
@@ -83,7 +91,7 @@ describe('GET /api/status', () => {
     const res = makeRes()
     await createStatusHandler(d)(req(), res)
     expect(res.body).toEqual({ status: 'failed' })
-    expect(d.repo.markFailed).toHaveBeenCalledWith('g1', 'failed')
+    expect(d.repo.markFailed).toHaveBeenCalledWith(ID, 'failed')
   })
   it('erreur réseau passagère : reste en cours', async () => {
     const bfl = fakeBfl({ poll: vi.fn(async () => { throw new ProviderError('provider_error', 'x', 500) }) })
@@ -112,7 +120,7 @@ describe('GET /api/status', () => {
     const res = makeRes()
     await createStatusHandler(d)(req(), res)
     expect(d.repo.refundQuota).toHaveBeenCalledTimes(1)
-    expect(d.repo.deleteJob).toHaveBeenCalledWith('g1')
+    expect(d.repo.deleteJob).toHaveBeenCalledWith(ID)
   })
   it('markDone perdu : fichier téléversé supprimé, job conservé', async () => {
     const bfl = fakeBfl({ poll: vi.fn(async () => ({ state: 'ready', sampleUrl: 'https://delivery.bfl.ai/x.png' })) })
@@ -120,7 +128,7 @@ describe('GET /api/status', () => {
     const res = makeRes()
     await createStatusHandler(d)(req(), res)
     expect(res.body).toEqual({ status: 'pending' })
-    expect(d.repo.removeImages).toHaveBeenCalledWith(['u1/g1.png'])
+    expect(d.repo.removeImages).toHaveBeenCalledWith([`u1/${ID}.png`])
     expect(d.repo.deleteJob).not.toHaveBeenCalled()
   })
   it('téléchargement impossible : réessai au tour suivant', async () => {

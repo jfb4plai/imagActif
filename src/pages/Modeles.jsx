@@ -5,12 +5,19 @@ import { listerModeles, majVerrousModele, supprimerModele } from '../lib/data.js
 function Verrous({ modele, onSauve }) {
   const [verrous, setVerrous] = useState(modele.locked_fields)
   const [message, setMessage] = useState('')
+  const [erreur, setErreur] = useState('')
   const bascule = (path) => setVerrous((v) => (v.includes(path) ? v.filter((p) => p !== path) : [...v, path]))
 
   async function sauver() {
-    await majVerrousModele(modele.id, verrous)
-    setMessage('Verrous enregistrés.')
-    onSauve()
+    setMessage('')
+    setErreur('')
+    try {
+      await majVerrousModele(modele.id, verrous)
+      setMessage('Verrous enregistrés.')
+      onSauve()
+    } catch (e) {
+      setErreur(e.message || "Les verrous n'ont pas pu être enregistrés. Réessayez.")
+    }
   }
 
   return (
@@ -25,6 +32,7 @@ function Verrous({ modele, onSauve }) {
       ))}
       <button type="button" className="plai-btn plai-btn-ghost" style={{ marginTop: '0.5rem' }} onClick={sauver}>Enregistrer les verrous</button>
       {message && <p className="plai-success" role="status">{message}</p>}
+      {erreur && <p className="plai-error" role="alert">{erreur}</p>}
     </fieldset>
   )
 }

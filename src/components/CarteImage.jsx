@@ -25,6 +25,7 @@ export default function CarteImage({ gen, url, onVariante, onTelecharger, onSupp
   return (
     <article className="plai-card img-card">
       {aImage && url && <img src={url} alt={`Image générée : ${sujet}`} />}
+      {aImage && url && <p className="plai-help">Image générée par IA, à relire avant usage en classe.</p>}
       {gen.status === 'done' && !gen.image_path && (
         <p className="plai-banner">Image supprimée le {dateFr(gen.image_deleted_at ?? gen.image_expires_at)}. Le JSON est conservé : vous pouvez la régénérer.</p>
       )}

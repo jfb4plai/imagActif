@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { createKeyHandler } from './key.js'
-import { makeRes, okAuth, fakeRepo } from '../../../tests/helpers.js'
+import { makeRes, okAuth, fakeRepo, ACCOUNT } from '../../../tests/helpers.js'
 
 const chiffrer = vi.fn((clair, userId) => ({ ciphertext: `enc(${clair})`, iv: 'iv', secret_version: '1' }))
 const ring = () => 'RING'
@@ -33,6 +33,14 @@ describe('/api/key', () => {
     await createKeyHandler(deps(repo))({ method: 'PUT', headers: {}, body: { key: CLE } }, res)
     expect(res.code).toBe(403)
     expect(res.body.code).toBe('terms')
+  })
+  it('PUT exige la version courante du règlement', async () => {
+    const repo = fakeRepo({ getAccount: vi.fn(async () => ({ ...ACCOUNT, terms_version: '' })) })
+    const res = makeRes()
+    await createKeyHandler(deps(repo))({ method: 'PUT', headers: {}, body: { key: CLE } }, res)
+    expect(res.code).toBe(403)
+    expect(res.body.code).toBe('terms')
+    expect(repo.saveKey).not.toHaveBeenCalled()
   })
   it('DELETE supprime la clé', async () => {
     const repo = fakeRepo()

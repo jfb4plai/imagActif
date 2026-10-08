@@ -54,6 +54,19 @@ try {
     assert.ok(error || (data ?? []).length === 0)
     assert.ok(error, 'une erreur de droits est attendue')
   })
+  await cas('u1 lit sans erreur img_accounts et img_generations (droits de lecture)', async () => {
+    const a = await u1.client.from('img_accounts').select('*')
+    assert.equal(a.error, null)
+    const g = await u1.client.from('img_generations').select('*')
+    assert.equal(g.error, null)
+  })
+  await cas('un client anonyme ne lit aucune table ImagActif', async () => {
+    const anonyme = createClient(url, anon, { auth: { persistSession: false } })
+    for (const table of ['img_accounts', 'img_generations', 'img_templates', 'img_usage']) {
+      const { data, error } = await anonyme.from(table).select('*')
+      assert.ok(error || (data ?? []).length === 0, `${table} lisible sans session`)
+    }
+  })
   await cas('img_jobs illisible pour authenticated', async () => {
     const { error } = await u1.client.from('img_jobs').select('*')
     assert.ok(error)

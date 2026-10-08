@@ -60,6 +60,7 @@ export function createBfl({ fetchImpl = fetch, baseUrl = 'https://api.eu.bfl.ai'
         return { state: 'refused' }
       case 'Error':
       case 'Failed':
+      case 'Task not found':
         return { state: 'failed' }
       default:
         return { state: 'pending' }
@@ -71,9 +72,11 @@ export function createBfl({ fetchImpl = fetch, baseUrl = 'https://api.eu.bfl.ai'
     if (new URL(valeur).protocol !== 'https:') throw new ProviderError('provider_error', 'Lien de téléchargement non sécurisé.')
     const resp = await fetchImpl(valeur)
     if (!resp.ok) throw new ProviderError('provider_error', `Téléchargement impossible (${resp.status}).`)
+    const type = resp.headers.get('content-type')
+    if (type && !type.startsWith('image/')) throw new ProviderError('provider_error', 'Le lien ne renvoie pas une image.')
     const buffer = Buffer.from(await resp.arrayBuffer())
     if (buffer.length > MAX_OCTETS) throw new ProviderError('provider_error', 'Image trop volumineuse.')
-    return { buffer, contentType: resp.headers.get('content-type') || 'image/jpeg' }
+    return { buffer, contentType: type || 'image/jpeg' }
   }
 
   return { model, submit, poll, download }

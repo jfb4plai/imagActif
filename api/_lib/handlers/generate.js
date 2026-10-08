@@ -9,6 +9,7 @@ import { limitsFromEnv } from '../../../src/lib/limits.js'
 import { MESSAGES } from '../../../src/lib/messages.js'
 import { ProviderError } from '../providers/bfl.js'
 import { cleApi } from '../resolveKey.js'
+import { UUID_RE } from '../uuid.js'
 
 const STALE_MS = 5 * 60 * 1000
 const STATUTS = { invalid_key: 400, no_credits: 402, rate_limited: 429, provider_error: 502 }
@@ -42,7 +43,9 @@ export function createGenerateHandler({
 
     let parentId = null
     if (req.body?.parentId) {
-      const parent = await repo.getGeneration(String(req.body.parentId), user.id)
+      const idParent = String(req.body.parentId)
+      if (!UUID_RE.test(idParent)) return echec(res, 400, 'invalid_parent')
+      const parent = await repo.getGeneration(idParent, user.id)
       if (!parent) return echec(res, 400, 'invalid_parent')
       parentId = parent.id
     }

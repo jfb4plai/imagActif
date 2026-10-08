@@ -1,6 +1,7 @@
 import { vi } from 'vitest'
 import { TERMS_VERSION } from '../src/lib/terms.js'
 
+export const ID = '11111111-1111-4111-8111-111111111111'
 export const NOW = new Date('2026-10-08T10:00:00Z')
 export const USER = { id: 'u1', email: 'prof@exemple.be', email_confirmed_at: '2026-10-01T00:00:00Z' }
 
@@ -30,7 +31,7 @@ export function fakeRepo(over = {}) {
     reserveQuota: vi.fn(async () => 'ok'),
     refundQuota: vi.fn(async () => {}),
     getGeneration: vi.fn(async () => null),
-    insertGeneration: vi.fn(async (row) => ({ id: 'g1', ...row })),
+    insertGeneration: vi.fn(async (row) => ({ id: ID, ...row })),
     insertJob: vi.fn(async () => {}),
     getJob: vi.fn(async () => null),
     deleteJob: vi.fn(async () => {}),

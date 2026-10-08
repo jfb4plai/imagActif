@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AuthProvider, useAuth } from './contexts/AuthContext.jsx'
 import { useCompte } from './lib/useCompte.js'
 import { determineRegime } from './lib/regime.js'
@@ -19,6 +19,12 @@ function Contenu() {
   const { chargement, compte, usage, recharger } = useCompte(user)
   const [vue, setVue] = useState('creer')
   const [brouillon, setBrouillon] = useState(brouillonVide)
+
+  // Un autre compte sur le même navigateur ne doit pas hériter du brouillon ni de l'onglet du précédent.
+  useEffect(() => {
+    setBrouillon(brouillonVide())
+    setVue('creer')
+  }, [user?.id])
 
   const accepte = compte && compte.terms_version === TERMS_VERSION
   const regime = accepte ? determineRegime({ trialStartedAt: compte.trial_started_at, hasOwnKey: compte.has_own_key }) : 'none'
