@@ -56,7 +56,9 @@ Suppression à 30 jours : tâche planifiée Vercel quotidienne appelant `/api/cl
 Suppression « du compte » : suppression de toutes les données ImagActif (lignes, fichiers, clé). L'identifiant de connexion est partagé entre les apps PLAI et n'est pas supprimé. La ligne `img_accounts` est conservée, sans règles acceptées ni clé : seuls la date de début d'essai et le compteur d'images du jour (`img_usage`) sont conservés, pour empêcher de renouveler l'essai gratuit ou de remettre le quota à zéro.
 La suppression d'une image passe par `DELETE /api/generation` (le fichier est supprimé avant la ligne).
 
-## 5. Gabarit JSON v1 et écrans
+## 5. Gabarit JSON (v1 initial, v2 depuis le 2026-10-08) et écrans
+
+> Mise à jour 2026-10-08 : le gabarit est passé en v2 (éléments, couleurs, composition avancée, éclairage, décor, atmosphère, textes présents, rendu, mouvement, tous facultatifs, dans un bloc « Détails avancés » replié). Un JSON v1 s’ouvre sans perte. Prompt limité à 4 000 caractères. Spécification complète : `docs/superpowers/plans/2026-10-08-gabarit-v2.md`. Le schéma ci-dessous est celui de la v1, conservé comme noyau de la v2.
 
 ```json
 {
