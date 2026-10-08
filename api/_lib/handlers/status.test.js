@@ -97,6 +97,32 @@ describe('GET /api/status', () => {
     await createStatusHandler(deps({ bfl }))(req(), res)
     expect(res.body).toEqual({ status: 'failed' })
   })
+  it('markFailed perdu (autre appel a déjà tranché) : pas de remboursement, reste en cours', async () => {
+    const bfl = fakeBfl({ poll: vi.fn(async () => ({ state: 'failed' })) })
+    const d = deps({ bfl }, { markFailed: vi.fn(async () => false) })
+    const res = makeRes()
+    await createStatusHandler(d)(req(), res)
+    expect(res.body).toEqual({ status: 'pending' })
+    expect(d.repo.refundQuota).not.toHaveBeenCalled()
+    expect(d.repo.deleteJob).not.toHaveBeenCalled()
+  })
+  it('markFailed gagné : un seul remboursement', async () => {
+    const bfl = fakeBfl({ poll: vi.fn(async () => ({ state: 'failed' })) })
+    const d = deps({ bfl })
+    const res = makeRes()
+    await createStatusHandler(d)(req(), res)
+    expect(d.repo.refundQuota).toHaveBeenCalledTimes(1)
+    expect(d.repo.deleteJob).toHaveBeenCalledWith('g1')
+  })
+  it('markDone perdu : fichier téléversé supprimé, job conservé', async () => {
+    const bfl = fakeBfl({ poll: vi.fn(async () => ({ state: 'ready', sampleUrl: 'https://delivery.bfl.ai/x.png' })) })
+    const d = deps({ bfl }, { markDone: vi.fn(async () => false) })
+    const res = makeRes()
+    await createStatusHandler(d)(req(), res)
+    expect(res.body).toEqual({ status: 'pending' })
+    expect(d.repo.removeImages).toHaveBeenCalledWith(['u1/g1.png'])
+    expect(d.repo.deleteJob).not.toHaveBeenCalled()
+  })
   it('téléchargement impossible : réessai au tour suivant', async () => {
     const bfl = fakeBfl({
       poll: vi.fn(async () => ({ state: 'ready', sampleUrl: 'https://delivery.bfl.ai/x.png' })),

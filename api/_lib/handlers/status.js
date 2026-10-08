@@ -16,7 +16,9 @@ export function createStatusHandler({ requireUser, repo, bfl, dechiffrer, ring, 
     if (gen.status !== 'pending') return res.status(200).json({ status: gen.status })
 
     const echouer = async (statut) => {
-      await repo.markFailed(gen.id, statut)
+      const change = await repo.markFailed(gen.id, statut)
+      // Un autre appel a déjà tranché : ne pas rembourser deux fois, le client réinterrogera.
+      if (!change) return res.status(200).json({ status: 'pending' })
       await repo.deleteJob(gen.id)
       if (gen.quota_day) await repo.refundQuota(user.id, gen.quota_day)
       return res.status(200).json({ status: statut })
@@ -42,7 +44,11 @@ export function createStatusHandler({ requireUser, repo, bfl, dechiffrer, ring, 
       const { buffer, contentType } = await bfl.download(etat.sampleUrl)
       const chemin = `${user.id}/${gen.id}.${extensionFor(contentType)}`
       await repo.uploadImage(chemin, buffer, contentType)
-      await repo.markDone(gen.id, chemin, imageExpiry(now()).toISOString())
+      const change = await repo.markDone(gen.id, chemin, imageExpiry(now()).toISOString())
+      if (!change) {
+        await repo.removeImages([chemin])
+        return res.status(200).json({ status: 'pending' })
+      }
       await repo.deleteJob(gen.id)
       return res.status(200).json({ status: 'done' })
     } catch {

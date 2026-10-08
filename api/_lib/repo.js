@@ -73,10 +73,14 @@ export function createRepo(getDb = admin) {
       ok(await db().from('img_jobs').delete().eq('generation_id', generationId))
     },
     async markDone(id, imagePath, expiresAtIso) {
-      ok(await db().from('img_generations').update({ status: 'done', image_path: imagePath, image_expires_at: expiresAtIso }).eq('id', id))
+      const lignes = ok(await db().from('img_generations')
+        .update({ status: 'done', image_path: imagePath, image_expires_at: expiresAtIso })
+        .eq('id', id).eq('status', 'pending').select('id'))
+      return lignes.length > 0
     },
     async markFailed(id, status) {
-      ok(await db().from('img_generations').update({ status }).eq('id', id))
+      const lignes = ok(await db().from('img_generations').update({ status }).eq('id', id).eq('status', 'pending').select('id'))
+      return lignes.length > 0
     },
     async uploadImage(path, buffer, contentType) {
       const { error } = await storage().upload(path, buffer, { contentType, upsert: true })
