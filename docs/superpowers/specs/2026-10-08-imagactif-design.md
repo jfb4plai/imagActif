@@ -53,7 +53,7 @@ Stockage : bucket privé, chemins `userId/generationId.png`, liens signés de qu
 
 Suppression à 30 jours : tâche planifiée Vercel quotidienne appelant `/api/cleanup` (secret requis). Elle supprime les fichiers via l'API de stockage (pas par SQL, qui laisse des fichiers orphelins) puis renseigne `image_deleted_at`. Le JSON reste.
 
-Suppression « du compte » : suppression de toutes les données ImagActif (lignes, fichiers, clé). L'identifiant de connexion est partagé entre les apps PLAI et n'est pas supprimé. La ligne `img_accounts` est conservée, sans règles acceptées ni clé : seule la date de début d'essai reste, pour empêcher de renouveler l'essai gratuit.
+Suppression « du compte » : suppression de toutes les données ImagActif (lignes, fichiers, clé). L'identifiant de connexion est partagé entre les apps PLAI et n'est pas supprimé. La ligne `img_accounts` est conservée, sans règles acceptées ni clé : seuls la date de début d'essai et le compteur d'images du jour (`img_usage`) sont conservés, pour empêcher de renouveler l'essai gratuit ou de remettre le quota à zéro.
 La suppression d'une image passe par `DELETE /api/generation` (le fichier est supprimé avant la ligne).
 
 ## 5. Gabarit JSON v1 et écrans

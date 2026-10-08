@@ -110,11 +110,12 @@ export function createRepo(getDb = admin) {
         const { error: e2 } = await storage().remove(data.map((f) => `${userId}/${f.name}`))
         if (e2) throw e2
       }
-      for (const table of ['img_templates', 'img_usage', 'img_user_keys', 'img_generations']) {
+      for (const table of ['img_templates', 'img_user_keys', 'img_generations']) {
         ok(await db().from(table).delete().eq('user_id', userId))
       }
-      // La ligne de compte est conservée sans les règles acceptées ni la clé : seule la date de début d'essai reste,
-      // sinon supprimer ses données renouvellerait l'essai gratuit à l'infini. Réacceptation requise à la reconnexion.
+      // img_usage est conservé (compteur d'images du jour, quota par compte et plafond global), et la ligne de compte
+      // aussi, sans les règles acceptées ni la clé : date de début d'essai et compteur du jour restent, sinon supprimer
+      // ses données renouvellerait l'essai et remettrait le quota à zéro. Réacceptation requise à la reconnexion.
       ok(await db().from('img_accounts').update({ terms_version: '', has_own_key: false }).eq('user_id', userId))
     },
   }

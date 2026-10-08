@@ -133,7 +133,7 @@ export default function MesDonnees({ compte, regime, recharger, signOut }) {
       <section className="plai-card" aria-labelledby="t-suppr" style={{ marginTop: '1rem' }}>
         <h3 id="t-suppr">Supprimer mes données ImagActif</h3>
         <p>Supprime définitivement vos images, JSON, modèles et votre clé BFL. Cette action est irréversible.</p>
-        <p className="plai-help">Seule la date de début de votre essai gratuit est conservée, pour qu'il ne puisse pas être renouvelé. Votre identifiant de connexion (e-mail) est commun à plusieurs outils PLAI : il n'est pas supprimé ici. Pour le faire supprimer, écrivez à jf.beguin@outlook.com.</p>
+        <p className="plai-help">Seuls la date de début de votre essai gratuit et le nombre d'images du jour sont conservés, pour que l'essai ne puisse pas être renouvelé. Votre identifiant de connexion (e-mail) est commun à plusieurs outils PLAI : il n'est pas supprimé ici. Pour le faire supprimer, écrivez à jf.beguin@outlook.com.</p>
         <form onSubmit={supprimerTout}>
           <label className="plai-label" htmlFor="confirm-suppr">Tapez SUPPRIMER pour confirmer</label>
           <input id="confirm-suppr" className="plai-input" value={confirmation} onChange={(e) => setConfirmation(e.target.value)} placeholder="SUPPRIMER" autoComplete="off" />

@@ -17,7 +17,7 @@
 - Aucune référence scientifique n'est affichée dans l'app. Les textes d'aide décrivent uniquement l'effet d'un champ sur l'image, sans affirmation sur l'apprentissage (règle RISS).
 - Écarts assumés par rapport au spec (à reporter dans le spec à la Task 0) :
   1. L'acceptation des règles est enregistrée à la **première connexion** (écran « Règlement »), pas dans le formulaire d'inscription : `signUp` ne donne pas de session avant confirmation de l'e-mail. L'écran d'inscription affiche déjà le résumé des règles et le serveur refuse de générer sans acceptation.
-  2. « Suppression du compte » = suppression de **toutes les données ImagActif** (lignes, fichiers, clé). L'identifiant de connexion (`auth.users`) est partagé entre toutes les apps PLAI : il n'est pas supprimé. La ligne `img_accounts` est conservée avec `terms_version = ''` et sans clé : seule la date de début d'essai reste (sinon la suppression renouvellerait l'essai gratuit), et le texte de « Mes données » le dit.
+  2. « Suppression du compte » = suppression de **toutes les données ImagActif** (lignes, fichiers, clé). L'identifiant de connexion (`auth.users`) est partagé entre toutes les apps PLAI : il n'est pas supprimé. La ligne `img_accounts` est conservée avec `terms_version = ''` et sans clé : seuls la date de début d'essai et le compteur d'images du jour (`img_usage`, conservé) restent (sinon la suppression renouvellerait l'essai gratuit et remettrait le quota à zéro), et le texte de « Mes données » le dit.
   3. Ajout de `img_accounts.has_own_key` (booléen lisible par le client) car `img_user_keys` est illisible côté client.
   4. Suppression d'une image/génération par l'API `DELETE /api/generation` (le fichier doit être supprimé avant la ligne), pas par le client.
 
