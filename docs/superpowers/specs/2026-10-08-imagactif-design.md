@@ -19,7 +19,7 @@ Hors périmètre v1 : plusieurs fournisseurs d'images actifs, aide IA à la réd
 | JSON | Hybride, v1 centrée sur le gabarit à champs fixes ; JSON = source de vérité ; champs personnalisés ; import/export |
 | Coût | Essai de 3 jours sur la clé BFL de JF avec quota ; ensuite clé BFL personnelle de l'enseignant |
 | Clé personnelle | Chiffrée côté serveur (AES-256-GCM), jamais renvoyée au navigateur |
-| Conservation | Image supprimée à 30 jours ; JSON conservé jusqu'à suppression par l'enseignant |
+| Conservation | Image supprimée à 30 jours ; JSON et modèles supprimés 1 an après leur création (décision de JF du 2026-10-08, avertissement 30 jours avant) ; l'enseignant peut les supprimer plus tôt |
 | Information | Garantie de l'information de l'utilisateur (voir 6) |
 | Architecture | React 18 + Vite 5 + Tailwind v3, fonctions Vercel `/api/*`, Supabase partagé (auth, base, stockage) |
 

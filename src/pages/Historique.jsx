@@ -64,7 +64,7 @@ export default function Historique({ ouvrirDansCreer }) {
   return (
     <div className="plai-section">
       <h2>Historique</h2>
-      <p className="plai-help">Vos images sont supprimées 30 jours après leur création ; leur JSON reste ici jusqu'à ce que vous le supprimiez.</p>
+      <p className="plai-help">Vos images sont supprimées 30 jours après leur création ; leur JSON reste ici un an au maximum après leur création (ou jusqu'à ce que vous le supprimiez).</p>
       {erreur && <p className="plai-error" role="alert">{erreur}</p>}
       {generations === null && !erreur && <p className="plai-help">Chargement…</p>}
       {generations?.length === 0 && <p className="plai-empty">Aucune image pour l'instant. Créez-en une dans l'onglet « Créer ».</p>}

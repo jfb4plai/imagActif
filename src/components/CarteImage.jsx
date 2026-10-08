@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import EnregistrerModele from './EnregistrerModele.jsx'
+import AvisPurgeJson from './AvisPurgeJson.jsx'
 import { joursRestants, niveauUrgence, IMAGE_RETENTION_DAYS } from '../lib/dates.js'
 
 const dateFr = (iso) => new Date(iso).toLocaleDateString('fr-BE', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -43,6 +44,7 @@ export default function CarteImage({ gen, url, onVariante, onTelecharger, onSupp
           {urgence !== 'ok' && ' Téléchargez-la si vous voulez la garder.'}
         </p>
       )}
+      <AvisPurgeJson creeLe={gen.created_at} />
       <div className="img-actions">
         {aImage && <button type="button" className="plai-btn" onClick={onTelecharger}>Télécharger</button>}
         {gen.status === 'done' && (

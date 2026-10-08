@@ -1,4 +1,6 @@
 export const IMAGE_RETENTION_DAYS = 30
+export const JSON_RETENTION_DAYS = 365 // descriptions (JSON) et modèles : supprimés 1 an après leur création
+export const JSON_AVERTISSEMENT_JOURS = 30
 const JOUR_MS = 86400000
 
 export function imageExpiry(depuis = new Date()) {
@@ -10,6 +12,11 @@ export function imageExpiry(depuis = new Date()) {
 export function joursRestants(expiration, now = new Date(), max = Infinity) {
   const ms = new Date(expiration).getTime() - now.getTime()
   return Math.min(max, Math.max(0, Math.ceil(ms / JOUR_MS)))
+}
+
+export function joursAvantPurgeJson(creeLe, now = new Date()) {
+  const fin = new Date(new Date(creeLe).getTime() + JSON_RETENTION_DAYS * JOUR_MS)
+  return joursRestants(fin, now, JSON_RETENTION_DAYS)
 }
 
 export function niveauUrgence(jours) {

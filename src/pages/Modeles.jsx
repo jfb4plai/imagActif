@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { CHAMPS } from '../lib/champs.js'
+import AvisPurgeJson from '../components/AvisPurgeJson.jsx'
 import { listerModeles, majVerrousModele, supprimerModele } from '../lib/data.js'
 
 function Verrous({ modele, onSauve }) {
@@ -64,6 +65,7 @@ export default function Modeles({ ouvrirDansCreer }) {
             <h3>{m.name}</h3>
             <p className="plai-help">{m.json?.sujet?.description || 'Sans sujet'}</p>
             <p className="plai-help">{m.locked_fields.length} champ{m.locked_fields.length > 1 ? 's' : ''} verrouillé{m.locked_fields.length > 1 ? 's' : ''}</p>
+            <AvisPurgeJson creeLe={m.created_at} />
             <div className="img-actions">
               <button type="button" className="plai-btn" onClick={() => ouvrirDansCreer({ gabarit: m.json, verrous: m.locked_fields })}>Utiliser</button>
               <button type="button" className="plai-btn plai-btn-ghost" onClick={() => setOuvert(ouvert === m.id ? null : m.id)}>Verrous</button>

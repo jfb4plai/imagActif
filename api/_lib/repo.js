@@ -95,6 +95,17 @@ export function createRepo(getDb = admin) {
       return ok(await db().from('img_generations').select('id, image_path')
         .not('image_path', 'is', null).is('image_deleted_at', null).lt('image_expires_at', nowIso).limit(limit))
     },
+    async listOlderThan(isoLimite, limit) {
+      return ok(await db().from('img_generations').select('id, image_path').lt('created_at', isoLimite).limit(limit))
+    },
+    async deleteGenerationsByIds(ids) {
+      if (!ids.length) return
+      ok(await db().from('img_generations').delete().in('id', ids))
+    },
+    async deleteTemplatesOlderThan(isoLimite) {
+      const lignes = ok(await db().from('img_templates').delete().lt('created_at', isoLimite).select('id'))
+      return lignes.length
+    },
     async markImagesDeleted(ids, nowIso) {
       ok(await db().from('img_generations').update({ image_path: null, image_deleted_at: nowIso }).in('id', ids))
     },

@@ -49,6 +49,6 @@ describe('createCleanupHandler', () => {
     const res = makeRes()
     await createCleanupHandler({ repo, secret: 's3cret', now: () => NOW })({ method: 'GET', headers: { authorization: 'Bearer s3cret' } }, res)
     expect(res.code).toBe(200)
-    expect(res.body).toEqual({ imagesSupprimees: 0, echecsNettoyes: 0 })
+    expect(res.body).toEqual({ imagesSupprimees: 0, echecsNettoyes: 0, jsonSupprimes: 0, modelesSupprimes: 0 })
   })
 })
