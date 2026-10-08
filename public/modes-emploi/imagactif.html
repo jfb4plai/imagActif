@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>ImagActif : mode d'emploi</title>
+<style>
+:root {
+  --bg: #faf9f7; --surface: #ffffff; --surface2: #f4f2ee;
+  --border: #e8e4dd; --border2: #d4cfc6;
+  --text: #1a1814; --text2: #5a564f; --text3: #6f6a61;
+  --teal: #0f6e56; --teal-bg: #e1f5ee; --teal-border: #1d9e75;
+  --orange: #f97316; --orange-bg: #fef1e7;
+  --radius: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, -apple-system, 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); font-size: 16px; line-height: 1.7; }
+.plai-nav { background: rgba(250,249,247,0.95); border-bottom: 1px solid var(--border); padding: 0.9rem 2rem; display: flex; align-items: center; gap: 12px; }
+.plai-nav img { height: 32px; width: auto; }
+.plai-nav span { font-family: Georgia, 'Times New Roman', serif; font-size: 18px; }
+.plai-container { max-width: 760px; margin: 0 auto; padding: 0 1.5rem; }
+.plai-badge { display: inline-block; margin-top: 2rem; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--teal); background: var(--teal-bg); border: 1px solid var(--teal-border); padding: 5px 14px; border-radius: 20px; }
+h1 { font-family: Georgia, 'Times New Roman', serif; font-weight: 400; font-size: 30px; margin: 0.85rem 0 0.4rem; }
+.byline { font-size: 14px; color: var(--text3); margin-bottom: 1.75rem; }
+.lead { font-size: 17px; color: var(--text2); margin-bottom: 0.5rem; }
+.plai-section { padding: 2rem 0 1.75rem; border-top: 1px solid var(--border); }
+.plai-section h2 { font-family: Georgia, 'Times New Roman', serif; font-weight: 400; font-size: 22px; margin-bottom: 1rem; }
+.plai-section p { margin-bottom: 0.9rem; }
+.plai-section ol, .plai-section ul { margin: 0 0 0.9rem 1.4rem; }
+.plai-section li { margin-bottom: 0.6rem; }
+.plai-section li::marker { color: var(--teal); font-weight: 700; }
+.encadre { background: var(--teal-bg); border: 1px solid var(--teal-border); border-radius: var(--radius); padding: 1rem 1.4rem; margin-bottom: 0.9rem; }
+.limite { background: var(--orange-bg); border: 1px solid var(--orange); border-radius: var(--radius); padding: 0.5rem 1.5rem 1rem; }
+.limite h2 { margin-top: 0.75rem; }
+code { background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 0 5px; font-size: 0.92em; }
+a { color: var(--teal); }
+.plai-footer { text-align: center; padding: 2.5rem 0; font-size: 14px; color: var(--text3); border-top: 1px solid var(--border); margin-top: 1rem; }
+.plai-footer p + p { margin-top: 6px; }
+@media print { body { font-size: 12.5pt; } .plai-nav { padding: 0.4rem 0; } }
+</style>
+</head>
+<body>
+<header class="plai-nav">
+  <img src="/plai-logo.jpg" alt="PLAI">
+  <span>ImagActif</span>
+</header>
+
+<div class="plai-container">
+  <div class="plai-badge">Mode d'emploi · Enseignants</div>
+  <h1>ImagActif : fabriquer une image pour votre support de classe</h1>
+  <p class="byline">Mis à jour le 8 octobre 2026 · version de départ, à améliorer avec vos retours</p>
+  <p class="lead">
+    Vous décrivez l'image voulue dans un formulaire guidé. ImagActif la fabrique avec une IA, la garde 30 jours,
+    et conserve la description (le « JSON ») pour que vous puissiez refaire une image, en tirer une variante
+    ou la réutiliser comme modèle. Vous restez l'auteur : c'est votre description, et c'est vous qui relisez le résultat.
+  </p>
+
+  <section class="plai-section">
+    <h2>1. Avant de commencer</h2>
+    <ol>
+      <li>Créez un compte avec votre adresse professionnelle, puis cliquez sur le lien de confirmation reçu par e-mail. Si vous avez déjà un compte sur un autre outil PLAI, connectez-vous avec le même.</li>
+      <li>À la première connexion, lisez et acceptez les règles d'utilisation (conservation, envoi du texte à BFL, essai).</li>
+      <li><strong>Essai gratuit de 3 jours</strong> : jusqu'à 10 images par jour. Un bandeau en haut de la page « Créer » indique ce qu'il vous reste.</li>
+      <li>Après l'essai, ajoutez votre propre clé BFL (voir le point 6) pour continuer à créer des images. Vos images et vos JSON restent consultables.</li>
+    </ol>
+  </section>
+
+  <section class="plai-section">
+    <h2>2. Créer une image</h2>
+    <ol>
+      <li>Ouvrez l'onglet <strong>Créer</strong>.</li>
+      <li>Remplissez au minimum le <strong>sujet principal</strong>, par exemple « Un chat roux qui dort sur le rebord d'une fenêtre d'école ». Sous chaque champ, un texte explique ce que la saisie change.</li>
+      <li>Précisez, si vous le souhaitez, le style, la palette, le cadrage, le point de vue, l'arrière-plan et la lumière. Plus c'est concret, moins l'IA improvise.</li>
+      <li>Gardez « pas de texte dans l'image » dans <strong>À éviter</strong> : les IA écrivent mal. Ajoutez votre texte dans votre document.</li>
+      <li>Choisissez le <strong>format</strong> selon l'endroit où l'image sera placée (carré, paysage, portrait…).</li>
+      <li>Cliquez sur <strong>Créer l'image</strong> et patientez 10 à 40 secondes. Vous pouvez rester sur la page.</li>
+      <li><strong>Relisez l'image</strong> avant de l'utiliser. Si elle ne convient pas, modifiez la description et recommencez.</li>
+    </ol>
+    <div class="encadre"><strong>À ne jamais écrire dans la description :</strong> le nom d'un élève, sa photo, ou toute information qui permettrait de l'identifier. Ce texte est envoyé à BFL.</div>
+  </section>
+
+  <section class="plai-section">
+    <h2>3. Le JSON : garder, copier, importer</h2>
+    <p>Chaque image garde la description qui l'a produite, sous forme de texte structuré (le JSON). Vous n'avez pas besoin de le lire pour utiliser l'outil.</p>
+    <ul>
+      <li><strong>Copier</strong> : le bouton « Copier le JSON » (sur la page Créer ou sur une carte de l'Historique) place la description dans votre presse-papiers, pour la ranger ailleurs ou la réutiliser dans une autre IA.</li>
+      <li><strong>Importer</strong> : dans « JSON : copier ou importer », collez un JSON puis « Charger ce JSON ». Il est vérifié, puis rempli dans le formulaire. Les champs que l'outil ne connaît pas sont rangés dans les champs personnalisés. Rien n'est exécuté.</li>
+      <li><strong>Conservation</strong> : le JSON reste dans votre Historique tant que vous ne supprimez pas l'image, même quand l'image elle-même a disparu.</li>
+    </ul>
+  </section>
+
+  <section class="plai-section">
+    <h2>4. Variante et modèle</h2>
+    <ul>
+      <li><strong>Faire une variante</strong> : le formulaire se préremplit avec la description de l'image. Changez ce que vous voulez et cliquez sur « Créer l'image ».</li>
+      <li><strong>Enregistrer comme modèle</strong> : donnez un nom (par exemple « Fiche sciences P3, style plat »). Dans l'onglet <strong>Modèles</strong>, cochez les champs à <strong>verrouiller</strong> : quand vous utilisez ce modèle, ces champs ne peuvent plus être modifiés (le style, par exemple, pour garder des images cohérentes d'une fiche à l'autre).</li>
+      <li><strong>Graine</strong> : un nombre transmis à l'IA pour orienter son tirage. Voir « Ce que l'outil ne fait pas bien » ci-dessous.</li>
+    </ul>
+  </section>
+
+  <section class="plai-section">
+    <h2>5. Combien de temps les images restent</h2>
+    <ul>
+      <li>Une image est <strong>supprimée automatiquement 30 jours</strong> après sa création. Le compte à rebours est affiché sur chaque carte, et passe en orange à 5 jours de l'échéance.</li>
+      <li>Pour garder une image : bouton <strong>Télécharger</strong>, avant l'échéance.</li>
+      <li>Après suppression, la carte reste avec la mention « Image supprimée le … » et un bouton <strong>Refaire une image</strong> qui repart du même JSON.</li>
+    </ul>
+  </section>
+
+  <section class="plai-section">
+    <h2>6. Votre clé BFL personnelle</h2>
+    <ol>
+      <li>Créez un compte sur le site de Black Forest Labs (BFL) et ajoutez des crédits. Une image coûte quelques centimes ; consultez le tarif sur le site de BFL.</li>
+      <li>Dans votre espace BFL, créez une clé d'API et copiez-la (aide officielle : <a href="https://help.bfl.ai/articles/8446125349-quickstart-guide" target="_blank" rel="noopener noreferrer">help.bfl.ai</a>).</li>
+      <li>Dans ImagActif, onglet <strong>Mes données</strong>, collez-la dans « Ma clé BFL » et enregistrez.</li>
+    </ol>
+    <p>La clé est stockée <strong>chiffrée</strong> sur nos serveurs et ne revient jamais dans votre navigateur. Seul notre serveur l'utilise, pour vos images. Le bouton « Supprimer ma clé » la retire à tout moment.</p>
+  </section>
+
+  <section class="plai-section">
+    <h2>7. Vos données</h2>
+    <ul>
+      <li><strong>Envoyé à BFL (Allemagne, serveur européen)</strong> : uniquement le texte de la description, pour fabriquer l'image.</li>
+      <li><strong>Conservé chez nous</strong> : votre e-mail (connexion), vos JSON, vos modèles, vos images pendant 30 jours, et votre clé BFL chiffrée si vous l'ajoutez.</li>
+      <li><strong>Exporter</strong> : « Mes données », puis « Télécharger mon export » : un fichier ZIP avec vos JSON, vos modèles et les images encore disponibles.</li>
+      <li><strong>Supprimer</strong> : « Mes données », puis « Supprimer mes données ImagActif » (confirmation par saisie). Images, JSON, modèles et clé disparaissent. Seuls restent la date de début de votre essai et le nombre d'images du jour, pour que l'essai ne puisse pas être renouvelé. Votre identifiant de connexion est commun à plusieurs outils PLAI : pour le faire supprimer, écrivez à <a href="mailto:jf.beguin@outlook.com">jf.beguin@outlook.com</a>.</li>
+    </ul>
+  </section>
+
+  <section class="plai-section limite">
+    <h2>Ce que l'outil ne fait pas bien</h2>
+    <ul>
+      <li><strong>Le texte dans l'image n'est pas fiable.</strong> Lors de nos essais, deux aquarelles ont reçu une fausse signature manuscrite malgré « pas de texte dans l'image ». La rubrique « À éviter » est une demande, pas une garantie.</li>
+      <li><strong>Une même description ne redonne pas la même image.</strong> Avec la même graine, le sujet et le style restent proches, mais le cadrage et le décor changent.</li>
+      <li><strong>Une variante peut changer plus que prévu.</strong> Lors de nos essais, changer uniquement la palette a aussi modifié la composition. Les champs verrouillés d'un modèle garantissent que le texte de la description ne change pas, pas que l'image reste identique.</li>
+      <li><strong>L'IA peut se tromper</strong> : détails faux, objets déformés, mains ou visages étranges, situations qui ne correspondent pas à votre classe. Relisez chaque image avant de l'utiliser avec des élèves.</li>
+      <li><strong>Des descriptions voisines risquent de donner des images voisines</strong> : c'est votre contexte, vos mots précis et votre relecture qui donnent à l'image sa singularité. Plus vous êtes concret (objets, couleurs, cadrage), moins le résultat est générique.</li>
+    </ul>
+  </section>
+
+  <footer class="plai-footer">
+    <p>ImagActif : outil PLAI, Pôle Territorial de la Ville de Liège</p>
+    <p>Une question ou un problème ? <a href="mailto:jf.beguin@outlook.com">jf.beguin@outlook.com</a> · <a href="/">Retour à ImagActif</a></p>
+  </footer>
+</div>
+</body>
+</html>

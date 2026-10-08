@@ -71,7 +71,8 @@ function Contenu() {
         <p>ImagActif : outil PLAI, Pôle Territorial de la Ville de Liège</p>
         <p>Les images sont générées par une IA : à relire avant tout usage en classe.</p>
         <p>
-          Contact : jf.beguin@outlook.com · Code :{' '}
+          <a href="/modes-emploi/imagactif.html" target="_blank" rel="noopener noreferrer">Mode d'emploi</a>
+          {' · '}Contact : jf.beguin@outlook.com · Code :{' '}
           <a href="https://polyformproject.org/licenses/noncommercial/1.0.0" target="_blank" rel="noopener noreferrer">PolyForm Noncommercial 1.0.0</a>
           {' · '}Jean-François Beguin, jfb4plai.com
         </p>

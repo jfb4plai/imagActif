@@ -6,6 +6,10 @@
   "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }],
   "headers": [
     {
+      "source": "/modes-emploi/(.*)",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    },
+    {
       "source": "/(.*)",
       "headers": [
         {
