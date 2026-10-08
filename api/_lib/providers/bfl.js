@@ -37,7 +37,14 @@ export function createBfl({ fetchImpl = fetch, baseUrl = 'https://api.eu.bfl.ai'
       headers: { accept: 'application/json', 'Content-Type': 'application/json', 'x-key': apiKey },
       body: JSON.stringify({ prompt, width, height, seed }),
     })
-    if (!resp.ok) throw erreurHttp(resp.status)
+    if (!resp.ok) {
+      // BFL répond 422 « Invalid API key format » à une clé mal formée (faute de frappe, clé tronquée).
+      if (resp.status === 422) {
+        const detail = await resp.text().catch(() => '')
+        if (/api key/i.test(detail)) throw new ProviderError('invalid_key', 'Clé mal formée.', 422)
+      }
+      throw erreurHttp(resp.status)
+    }
     const data = await resp.json()
     if (!data?.id || !data?.polling_url) throw new ProviderError('provider_error', 'Réponse BFL inattendue.')
     verifierUrlBfl(data.polling_url)

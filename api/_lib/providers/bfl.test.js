@@ -27,6 +27,12 @@ describe('bfl.submit', () => {
       await expect(bfl.submit({ apiKey: 'K', prompt: 'p', width: 1, height: 1, seed: 1 })).rejects.toMatchObject({ code })
     }
   })
+  it('traite une clé mal formée (422 « Invalid API key format ») comme une clé refusée', async () => {
+    const mal = createBfl({ fetchImpl: async () => ({ ...reponse({ detail: 'Invalid API key format' }, { status: 422 }), text: async () => '{"detail":"Invalid API key format"}' }) })
+    await expect(mal.submit({ apiKey: 'K', prompt: 'p', width: 1, height: 1, seed: 1 })).rejects.toMatchObject({ code: 'invalid_key' })
+    const autre = createBfl({ fetchImpl: async () => ({ ...reponse({}, { status: 422 }), text: async () => '{"detail":"width must be a multiple of 16"}' }) })
+    await expect(autre.submit({ apiKey: 'K', prompt: 'p', width: 1, height: 1, seed: 1 })).rejects.toMatchObject({ code: 'provider_error' })
+  })
   it('refuse une polling_url hors du domaine bfl.ai (la clé ne doit jamais fuiter)', async () => {
     const bfl = createBfl({ fetchImpl: async () => reponse({ id: '1', polling_url: 'https://evil.example.com/x' }) })
     await expect(bfl.submit({ apiKey: 'K', prompt: 'p', width: 1, height: 1, seed: 1 })).rejects.toBeInstanceOf(ProviderError)
