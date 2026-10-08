@@ -1,0 +1,11 @@
+body { font-size: 16px; }
+.plai-help { font-size: 0.95rem; color: var(--text2); margin-top: 0.25rem; }
+textarea.plai-input { min-height: 4.5rem; resize: vertical; }
+.img-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.img-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.img-card img { width: 100%; height: auto; border-radius: var(--radius-sm); display: block; }
+.img-urgent { color: #b45309; font-weight: 700; }
+.img-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem; }
+.img-split { display: grid; gap: 1.5rem; grid-template-columns: 1fr; }
+@media (min-width: 900px) { .img-split { grid-template-columns: 1fr 1fr; } }
+.img-warn { border-left: 4px solid #f97316; padding-left: 0.75rem; }
