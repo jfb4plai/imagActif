@@ -37,6 +37,7 @@ export function fakeRepo(over = {}) {
     deleteJob: vi.fn(async () => {}),
     markDone: vi.fn(async () => true),
     markFailed: vi.fn(async () => true),
+    signedUrl: vi.fn(async () => 'https://signed.example/x'),
     uploadImage: vi.fn(async () => {}),
     removeImages: vi.fn(async () => {}),
     deleteGeneration: vi.fn(async () => {}),
@@ -55,6 +56,7 @@ export function fakeBfl(over = {}) {
   return {
     model: 'flux-2-pro',
     submit: vi.fn(async () => ({ id: 'b1', pollingUrl: 'https://api.eu.bfl.ai/v1/get_result?id=b1' })),
+    edit: vi.fn(async () => ({ id: 'b2', pollingUrl: 'https://api.eu.bfl.ai/v1/get_result?id=b2' })),
     poll: vi.fn(async () => ({ state: 'pending' })),
     download: vi.fn(async () => ({ buffer: Buffer.from([1, 2, 3]), contentType: 'image/png' })),
     ...over,

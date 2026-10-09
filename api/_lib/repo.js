@@ -86,6 +86,12 @@ export function createRepo(getDb = admin) {
       const { error } = await storage().upload(path, buffer, { contentType, upsert: true })
       if (error) throw error
     },
+    // Lien temporaire vers une image du bucket privé (par exemple pour la transmettre à BFL lors d'une retouche).
+    async signedUrl(path, secondes) {
+      const { data, error } = await storage().createSignedUrl(path, secondes)
+      if (error) throw error
+      return data.signedUrl
+    },
     async removeImages(paths) {
       if (!paths.length) return
       const { error } = await storage().remove(paths)
