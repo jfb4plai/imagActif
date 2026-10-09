@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import GabaritForm from '../components/GabaritForm.jsx'
 import JsonPanel from '../components/JsonPanel.jsx'
 import EnregistrerModele from '../components/EnregistrerModele.jsx'
+import RetoucheForm from '../components/RetoucheForm.jsx'
 import BandeauRegime from '../components/BandeauRegime.jsx'
 import { api } from '../lib/api.js'
 import { getGeneration, urlsSignees } from '../lib/data.js'
@@ -19,6 +20,7 @@ export default function Creer({ brouillon, setBrouillon, compte, usage, regime, 
   const [erreur, setErreur] = useState('')
   const [resultat, setResultat] = useState(null)
   const [modele, setModele] = useState(false)
+  const [retouche, setRetouche] = useState(false)
   const actif = useRef(true)
   useEffect(() => { actif.current = true; return () => { actif.current = false } }, [])
 
@@ -57,6 +59,7 @@ export default function Creer({ brouillon, setBrouillon, compte, usage, regime, 
   async function lancer() {
     setErreur('')
     setModele(false)
+    setRetouche(false)
     const problemes = validerPourGeneration(brouillon.gabarit)
     if (problemes.length) { setErreur(problemes.join(' ')); return }
     setEtat('cours')
@@ -72,6 +75,31 @@ export default function Creer({ brouillon, setBrouillon, compte, usage, regime, 
       if (actif.current) {
         setErreur(messageErreur(e.code, e.message))
         setEtat('repos')
+      }
+    }
+    recharger()
+  }
+
+  // Retouche de l'image affichée : même suivi qu'une création. Une erreur d'envoi remonte au formulaire (qui reste ouvert) ;
+  // une erreur de suivi s'affiche ici. L'ancienne image reste visible tant que la nouvelle n'est pas prête.
+  async function retoucher(instruction) {
+    setErreur('')
+    setEtat('cours')
+    let id
+    try {
+      ({ id } = await api.retoucher(resultat.gen.id, instruction))
+    } catch (e) {
+      if (actif.current) setEtat('fini')
+      throw e
+    }
+    if (actif.current) setRetouche(false)
+    try {
+      await suivre(id)
+      if (actif.current) setEtat('fini')
+    } catch (e) {
+      if (actif.current) {
+        setErreur(messageErreur(e.code, e.message))
+        setEtat('fini')
       }
     }
     recharger()
@@ -120,8 +148,12 @@ export default function Creer({ brouillon, setBrouillon, compte, usage, regime, 
                 <button type="button" className="plai-btn plai-btn-ghost" onClick={faireVariante}>
                   Faire une variante
                 </button>
+                <button type="button" className="plai-btn plai-btn-ghost" disabled={bloque} aria-expanded={retouche} onClick={() => setRetouche(!retouche)}>
+                  Retoucher cette image
+                </button>
                 <button type="button" className="plai-btn plai-btn-ghost" onClick={() => setModele(!modele)}>Enregistrer comme modèle</button>
               </div>
+              {retouche && <RetoucheForm idPrefix="retouche-creer" onValider={retoucher} desactive={bloque} />}
               {modele && <EnregistrerModele json={resultat.gen.json} />}
             </div>
           )}
