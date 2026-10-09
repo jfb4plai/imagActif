@@ -45,6 +45,15 @@ export default function Creer({ brouillon, setBrouillon, compte, usage, regime, 
     if (actif.current) throw echec('timeout')
   }
 
+  // « Faire une variante » depuis le résultat : on est déjà sur le formulaire, qui contient déjà cette description.
+  // Il faut donc rendre l'effet visible : relier la variante à l'image d'origine (en gardant les verrous d'un modèle),
+  // remonter au formulaire et placer le curseur sur le sujet.
+  function faireVariante() {
+    setBrouillon({ ...brouillon, gabarit: resultat.gen.json, parentId: resultat.gen.id })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    setTimeout(() => document.getElementById('champ-sujet-description')?.focus({ preventScroll: true }), 300)
+  }
+
   async function lancer() {
     setErreur('')
     setModele(false)
@@ -55,7 +64,10 @@ export default function Creer({ brouillon, setBrouillon, compte, usage, regime, 
     try {
       const { id } = await api.generer(brouillon.gabarit, brouillon.parentId)
       await suivre(id)
-      if (actif.current) setEtat('fini')
+      if (actif.current) {
+        setEtat('fini')
+        setBrouillon((b) => ({ ...b, parentId: null })) // la variante est créée : l'avis « variante » n'a plus lieu d'être
+      }
     } catch (e) {
       if (actif.current) {
         setErreur(messageErreur(e.code, e.message))
@@ -71,6 +83,11 @@ export default function Creer({ brouillon, setBrouillon, compte, usage, regime, 
     <div className="plai-section">
       <h2>Créer une image</h2>
       <BandeauRegime regime={regime} compte={compte} usage={usage} />
+      {brouillon.parentId && etat !== 'cours' && (
+        <p className="plai-success" role="status">
+          Variante : le formulaire contient la description de l'image choisie, graine comprise. Modifiez ce que vous voulez, puis cliquez sur « Créer l'image ».
+        </p>
+      )}
       {brouillon.verrous.length > 0 && (
         <p className="plai-banner">Ce brouillon vient d'un modèle : les champs verrouillés ne peuvent pas être modifiés.</p>
       )}
@@ -100,8 +117,7 @@ export default function Creer({ brouillon, setBrouillon, compte, usage, regime, 
                 téléchargez-la depuis l'Historique si vous voulez la garder. Le JSON, lui, reste.
               </p>
               <div className="img-actions">
-                <button type="button" className="plai-btn plai-btn-ghost"
-                  onClick={() => ouvrirDansCreer({ gabarit: resultat.gen.json, parentId: resultat.gen.id })}>
+                <button type="button" className="plai-btn plai-btn-ghost" onClick={faireVariante}>
                   Faire une variante
                 </button>
                 <button type="button" className="plai-btn plai-btn-ghost" onClick={() => setModele(!modele)}>Enregistrer comme modèle</button>
