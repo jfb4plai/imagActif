@@ -15,6 +15,7 @@ export const MESSAGES = {
   provider_error: 'Le service d\'images ne répond pas correctement. Réessayez plus tard.',
   invalid_json: 'Le contenu envoyé est invalide.',
   invalid_parent: "L'image d'origine est introuvable.",
+  source_indisponible: "Cette image n'est plus disponible (elle est supprimée au bout de 30 jours) : faites plutôt une variante ou refaites une image.",
 }
 
 export function messageErreur(code, repli = 'Une erreur est survenue. Réessayez.') {
