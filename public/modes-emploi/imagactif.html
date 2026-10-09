@@ -49,7 +49,7 @@ a { color: var(--teal); }
 <div class="plai-container">
   <div class="plai-badge">Mode d'emploi · Enseignants</div>
   <h1>ImagActif : fabriquer une image pour votre support de classe</h1>
-  <p class="byline">Mis à jour le 8 octobre 2026 · version de départ, à améliorer avec vos retours</p>
+  <p class="byline">Mis à jour le 9 octobre 2026 · version de départ, à améliorer avec vos retours</p>
   <p class="lead">
     Vous décrivez l'image voulue dans un formulaire guidé. ImagActif la fabrique avec une IA, la garde 30 jours,
     et conserve la description (le « JSON ») pour que vous puissiez refaire une image, en tirer une variante
@@ -112,6 +112,26 @@ a { color: var(--teal); }
   </section>
 
   <section class="plai-section">
+    <h2>Retoucher une image</h2>
+    <p><strong>Quand l'utiliser.</strong> Une variante recrée toute l'image à partir du texte : le décor et la prise de vue peuvent changer. La retouche envoie l'image existante à l'IA avec une consigne de changement : le reste de l'image devrait rester identique. Elle convient quand l'image vous plaît presque et qu'un détail doit changer (la couleur d'un vêtement, un objet à ajouter). Pour changer l'ambiance ou la composition, faites plutôt une variante.</p>
+    <ol>
+      <li>Sous une image (page <strong>Créer</strong> ou <strong>Historique</strong>), cliquez sur <strong>Retoucher cette image</strong>.</li>
+      <li>Dans « Que voulez-vous changer ? », décrivez un ou deux changements, par exemple « Le chapeau devient jaune et la souris porte des lunettes roses » (de 3 à 500 caractères).</li>
+      <li>Cliquez sur <strong>Retoucher</strong> et patientez quelques dizaines de secondes. La retouche crée une nouvelle image : l'originale reste dans l'Historique. Elle compte comme une image dans votre quota d'essai.</li>
+      <li>Relisez le résultat et comparez-le à l'original.</li>
+    </ol>
+    <p>La carte de la nouvelle image affiche « Retouche : » suivi de votre consigne. Une seule retouche à la fois, comme pour une création.</p>
+    <div class="encadre"><strong>Limites, dites honnêtement :</strong>
+      <ul>
+        <li>Nous n'avons réussi qu'<strong>un seul essai concluant à ce jour</strong> (un chat roux en aquarelle devenu blanc à rayures gris clair : fenêtre, arbres, cadrage et position conservés). Dans cet essai, le mur et les rideaux ont été légèrement éclaircis.</li>
+        <li><strong>BFL ne garantit pas</strong> que le reste de l'image reste identique. Relisez toujours le résultat.</li>
+        <li>La retouche ne fonctionne <strong>que tant que l'image existe</strong>, donc pendant 30 jours après sa création. Ensuite, utilisez « Refaire une image » à partir du JSON.</li>
+        <li><strong>L'image est renvoyée à BFL</strong>, par un lien temporaire de 5 minutes. N'utilisez pas la retouche sur une image qui contient des données d'élève.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="plai-section">
     <h2>5. Combien de temps les images restent</h2>
     <ul>
       <li>Une image est <strong>supprimée automatiquement 30 jours</strong> après sa création. Le compte à rebours est affiché sur chaque carte, et passe en orange à 5 jours de l'échéance.</li>
@@ -133,7 +153,7 @@ a { color: var(--teal); }
   <section class="plai-section">
     <h2>7. Vos données</h2>
     <ul>
-      <li><strong>Envoyé à BFL (société allemande, point d'accès européen)</strong> : uniquement le texte de la description, pour fabriquer l'image. BFL indique dans sa politique de confidentialité pouvoir utiliser les textes envoyés et les images produites pour améliorer ses modèles, après dé-identification, sauf demande d'exclusion. Elle ne précise ni la durée de conservation ni le lieu exact de traitement. Une demande d'exclusion a été envoyée à BFL le 8 octobre 2026 pour le compte utilisé pendant l'essai ; BFL ne l'a pas encore confirmée. Pour demander l'exclusion de cet usage pour votre propre compte BFL (si vous utilisez votre clé), écrivez à <a href="mailto:privacy@blackforestlabs.ai">privacy@blackforestlabs.ai</a> avec l'objet « Training Opt Out » et les références de votre compte.</li>
+      <li><strong>Envoyé à BFL (société allemande, point d'accès européen)</strong> : le texte de la description, pour fabriquer l'image ; et, seulement si vous utilisez « Retoucher cette image », l'image concernée, par un lien temporaire de 5 minutes. BFL indique dans sa politique de confidentialité pouvoir utiliser les textes envoyés et les images produites pour améliorer ses modèles, après dé-identification, sauf demande d'exclusion. Elle ne précise ni la durée de conservation ni le lieu exact de traitement. Une demande d'exclusion a été envoyée à BFL le 8 octobre 2026 pour le compte utilisé pendant l'essai ; BFL ne l'a pas encore confirmée. Pour demander l'exclusion de cet usage pour votre propre compte BFL (si vous utilisez votre clé), écrivez à <a href="mailto:privacy@blackforestlabs.ai">privacy@blackforestlabs.ai</a> avec l'objet « Training Opt Out » et les références de votre compte.</li>
       <li><strong>Conservé chez nous</strong> : votre e-mail (connexion), vos JSON et vos modèles (un an maximum après leur création), vos images pendant 30 jours, et votre clé BFL chiffrée si vous l'ajoutez.</li>
       <li><strong>Exporter</strong> : « Mes données », puis « Télécharger mon export » : un fichier ZIP avec vos JSON, vos modèles et les images encore disponibles.</li>
       <li><strong>Supprimer</strong> : « Mes données », puis « Supprimer mes données ImagActif » (confirmation par saisie). Images, JSON, modèles et clé disparaissent aussitôt d'ImagActif ; les copies de sauvegarde de la base (sans les images) sont purgées au plus tard 30 jours plus tard. Seuls restent la date de début de votre essai et le nombre d'images du jour, pour que l'essai ne puisse pas être renouvelé. Votre identifiant de connexion est commun à plusieurs outils PLAI : pour le faire supprimer, écrivez à <a href="mailto:jf.beguin@outlook.com">jf.beguin@outlook.com</a>.</li>
