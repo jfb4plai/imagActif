@@ -142,4 +142,15 @@ describe('GET /api/status', () => {
     expect(res.body).toEqual({ status: 'pending' })
     expect(d.repo.markDone).not.toHaveBeenCalled()
   })
+  it('génération retouchée (parent_id, edit_instruction) en clé personnelle : suivie et finalisée comme les autres', async () => {
+    const retouchee = { ...GEN, key_mode: 'own', quota_day: null, parent_id: '22222222-2222-4222-8222-222222222222', edit_instruction: 'Le chapeau devient jaune' }
+    const bfl = fakeBfl({ poll: vi.fn(async () => ({ state: 'ready', sampleUrl: 'https://delivery.bfl.ai/x.png' })) })
+    const d = deps({ bfl }, { getGeneration: vi.fn(async () => retouchee), getKey: vi.fn(async () => ({ ciphertext: 'c', iv: 'i', secret_version: '1' })) })
+    const res = makeRes()
+    await createStatusHandler(d)(req(), res)
+    expect(res.body).toEqual({ status: 'done' })
+    expect(bfl.poll).toHaveBeenCalledWith({ apiKey: 'cle-perso', pollingUrl: JOB.polling_url })
+    expect(d.repo.markDone).toHaveBeenCalledWith(ID, `u1/${ID}.png`, '2026-11-07T10:00:00.000Z')
+    expect(d.repo.refundQuota).not.toHaveBeenCalled()
+  })
 })
