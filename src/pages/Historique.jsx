@@ -51,6 +51,12 @@ export default function Historique({ ouvrirDansCreer }) {
     }
   }
 
+  // Une erreur d'envoi remonte au formulaire de la carte ; la nouvelle carte « pending » est suivie par la minuterie.
+  async function retoucher(gen, instruction) {
+    await api.retoucher(gen.id, instruction)
+    await charger()
+  }
+
   async function supprimer(gen) {
     if (!window.confirm('Supprimer cette image et son JSON ? Cette action est définitive.')) return
     try {
@@ -72,6 +78,7 @@ export default function Historique({ ouvrirDansCreer }) {
         {generations?.map((g) => (
           <CarteImage key={g.id} gen={g} url={urls[g.image_path]}
             onVariante={() => ouvrirDansCreer({ gabarit: g.json, parentId: g.id })}
+            onRetoucher={(instruction) => retoucher(g, instruction)}
             onTelecharger={() => telecharger(g)}
             onSupprimer={() => supprimer(g)} />
         ))}

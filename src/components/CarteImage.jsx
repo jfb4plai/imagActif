@@ -1,13 +1,15 @@
 import { useState } from 'react'
 import EnregistrerModele from './EnregistrerModele.jsx'
 import AvisPurgeJson from './AvisPurgeJson.jsx'
+import RetoucheForm from './RetoucheForm.jsx'
 import { joursRestants, niveauUrgence, IMAGE_RETENTION_DAYS } from '../lib/dates.js'
 
 const dateFr = (iso) => new Date(iso).toLocaleDateString('fr-BE', { day: 'numeric', month: 'long', year: 'numeric' })
 
-export default function CarteImage({ gen, url, onVariante, onTelecharger, onSupprimer }) {
+export default function CarteImage({ gen, url, onVariante, onRetoucher, onTelecharger, onSupprimer }) {
   const [modele, setModele] = useState(false)
   const [message, setMessage] = useState('')
+  const [retouche, setRetouche] = useState(false)
   const sujet = gen.json?.sujet?.description ?? ''
 
   async function copierJson() {
@@ -17,6 +19,11 @@ export default function CarteImage({ gen, url, onVariante, onTelecharger, onSupp
     } catch {
       setMessage('Copie impossible depuis ce navigateur.')
     }
+  }
+
+  async function envoyerRetouche(instruction) {
+    await onRetoucher(instruction)
+    setRetouche(false)
   }
 
   const aImage = gen.status === 'done' && gen.image_path
@@ -36,6 +43,7 @@ export default function CarteImage({ gen, url, onVariante, onTelecharger, onSupp
       )}
       <h3 style={{ marginTop: '0.75rem' }}>{sujet || 'Sans titre'}</h3>
       <p className="plai-help">Créée le {dateFr(gen.created_at)} · graine {gen.seed}</p>
+      {gen.edit_instruction && <p className="plai-help">Retouche : {gen.edit_instruction}</p>}
       {aImage && (
         <p className={urgence === 'bientot' ? 'img-urgent' : 'plai-help'} role={urgence === 'bientot' ? 'alert' : undefined}>
           {urgence === 'expire'
@@ -52,11 +60,17 @@ export default function CarteImage({ gen, url, onVariante, onTelecharger, onSupp
             {aImage ? 'Faire une variante' : 'Refaire une image'}
           </button>
         )}
+        {aImage && (
+          <button type="button" className="plai-btn plai-btn-ghost" aria-expanded={retouche} onClick={() => setRetouche(!retouche)}>
+            Retoucher cette image
+          </button>
+        )}
         <button type="button" className="plai-btn plai-btn-ghost" onClick={copierJson}>Copier le JSON</button>
         <button type="button" className="plai-btn plai-btn-ghost" onClick={() => setModele(!modele)}>Enregistrer comme modèle</button>
         <button type="button" className="plai-btn plai-btn-ghost" onClick={onSupprimer}>Supprimer</button>
       </div>
       {message && <p className="plai-help" role="status">{message}</p>}
+      {aImage && retouche && <RetoucheForm idPrefix={`retouche-${gen.id}`} onValider={envoyerRetouche} />}
       {modele && <EnregistrerModele json={gen.json} />}
     </article>
   )
