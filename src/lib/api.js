@@ -21,6 +21,7 @@ async function appeler(chemin, { method = 'GET', body } = {}) {
 export const api = {
   accepterReglement: () => appeler('/api/terms', { method: 'POST', body: { version: TERMS_VERSION } }),
   generer: (gabarit, parentId) => appeler('/api/generate', { method: 'POST', body: { gabarit, parentId } }),
+  retoucher: (sourceId, instruction) => appeler('/api/retoucher', { method: 'POST', body: { sourceId, instruction } }),
   statut: (id) => appeler(`/api/status?id=${encodeURIComponent(id)}`),
   enregistrerCle: (key) => appeler('/api/key', { method: 'PUT', body: { key } }),
   supprimerCle: () => appeler('/api/key', { method: 'DELETE' }),

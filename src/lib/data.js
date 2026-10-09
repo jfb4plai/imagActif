@@ -1,7 +1,7 @@
 import { supabase } from './supabaseClient.js'
 
 const BUCKET = 'img-generations'
-const COLONNES = 'id, json, prompt_text, seed, status, image_path, image_expires_at, image_deleted_at, parent_id, created_at'
+const COLONNES = 'id, json, prompt_text, seed, status, image_path, image_expires_at, image_deleted_at, parent_id, edit_instruction, created_at'
 
 function ok({ data, error }) {
   if (error) throw error
