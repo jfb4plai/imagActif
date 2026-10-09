@@ -43,6 +43,50 @@ describe('bfl.submit', () => {
   })
 })
 
+describe('bfl.edit', () => {
+  const OK = { id: 'abc', polling_url: 'https://api.eu.bfl.ai/v1/get_result?id=abc' }
+  const appel = (bfl, over = {}) => bfl.edit({ apiKey: 'K', prompt: 'chapeau jaune', inputImageUrl: 'https://signed.example/x', ...over })
+  it('envoie exactement prompt et input_image, sans taille ni graine', async () => {
+    const fetchImpl = vi.fn(async () => reponse(OK))
+    const r = await appel(createBfl({ fetchImpl }))
+    expect(r).toEqual({ id: 'abc', pollingUrl: OK.polling_url })
+    const [url, init] = fetchImpl.mock.calls[0]
+    expect(url).toBe('https://api.eu.bfl.ai/v1/flux-2-pro')
+    expect(init.method).toBe('POST')
+    expect(init.headers['x-key']).toBe('K')
+    expect(JSON.parse(init.body)).toEqual({ prompt: 'chapeau jaune', input_image: 'https://signed.example/x' })
+  })
+  it('traduit les erreurs HTTP', async () => {
+    const cas = [[401, 'invalid_key'], [403, 'invalid_key'], [402, 'no_credits'], [429, 'rate_limited'], [500, 'provider_error']]
+    for (const [status, code] of cas) {
+      const bfl = createBfl({ fetchImpl: async () => reponse({}, { status }) })
+      await expect(appel(bfl)).rejects.toMatchObject({ code })
+    }
+  })
+  it('traite une clé mal formée (422) comme une clé refusée', async () => {
+    const mal = createBfl({ fetchImpl: async () => ({ ...reponse({}, { status: 422 }), text: async () => '{"detail":"Invalid API key format"}' }) })
+    await expect(appel(mal)).rejects.toMatchObject({ code: 'invalid_key' })
+    const autre = createBfl({ fetchImpl: async () => ({ ...reponse({}, { status: 422 }), text: async () => '{"detail":"bad image"}' }) })
+    await expect(appel(autre)).rejects.toMatchObject({ code: 'provider_error' })
+  })
+  it('refuse une polling_url hors du domaine bfl.ai', async () => {
+    const bfl = createBfl({ fetchImpl: async () => reponse({ id: '1', polling_url: 'https://evil.example.com/x' }) })
+    await expect(appel(bfl)).rejects.toBeInstanceOf(ProviderError)
+  })
+  it('refuse une réponse sans polling_url', async () => {
+    const bfl = createBfl({ fetchImpl: async () => reponse({ id: '1' }) })
+    await expect(appel(bfl)).rejects.toMatchObject({ code: 'provider_error' })
+  })
+  it('refuse une image d'origine non https, sans appel réseau', async () => {
+    const fetchImpl = vi.fn()
+    const bfl = createBfl({ fetchImpl })
+    for (const inputImageUrl of ['http://x.example/a.png', 'pas une url', '']) {
+      await expect(appel(bfl, { inputImageUrl })).rejects.toMatchObject({ code: 'provider_error' })
+    }
+    expect(fetchImpl).not.toHaveBeenCalled()
+  })
+})
+
 describe('bfl.poll', () => {
   const poll = (corps) => createBfl({ fetchImpl: async () => reponse(corps) }).poll({ apiKey: 'K', pollingUrl: 'https://api.eu.bfl.ai/v1/get_result?id=1' })
   it('traduit les statuts', async () => {

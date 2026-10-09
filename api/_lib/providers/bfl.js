@@ -31,11 +31,11 @@ export function extensionFor(contentType) {
 }
 
 export function createBfl({ fetchImpl = fetch, baseUrl = 'https://api.eu.bfl.ai', model = 'flux-2-pro' } = {}) {
-  async function submit({ apiKey, prompt, width, height, seed }) {
+  async function envoyer(apiKey, corps) {
     const resp = await fetchImpl(`${baseUrl}/v1/${model}`, {
       method: 'POST',
       headers: { accept: 'application/json', 'Content-Type': 'application/json', 'x-key': apiKey },
-      body: JSON.stringify({ prompt, width, height, seed }),
+      body: JSON.stringify(corps),
     })
     if (!resp.ok) {
       // BFL répond 422 « Invalid API key format » à une clé mal formée (faute de frappe, clé tronquée).
@@ -49,6 +49,18 @@ export function createBfl({ fetchImpl = fetch, baseUrl = 'https://api.eu.bfl.ai'
     if (!data?.id || !data?.polling_url) throw new ProviderError('provider_error', 'Réponse BFL inattendue.')
     verifierUrlBfl(data.polling_url)
     return { id: data.id, pollingUrl: data.polling_url }
+  }
+
+  async function submit({ apiKey, prompt, width, height, seed }) {
+    return envoyer(apiKey, { prompt, width, height, seed })
+  }
+
+  // Retouche : même endpoint, avec l'image d'origine (lien https). La taille suit l'image ; pas de graine.
+  async function edit({ apiKey, prompt, inputImageUrl }) {
+    let protocole
+    try { protocole = new URL(inputImageUrl).protocol } catch { protocole = null }
+    if (protocole !== 'https:') throw new ProviderError('provider_error', 'Lien de l image d origine non sécurisé.')
+    return envoyer(apiKey, { prompt, input_image: inputImageUrl })
   }
 
   async function poll({ apiKey, pollingUrl }) {
@@ -86,7 +98,7 @@ export function createBfl({ fetchImpl = fetch, baseUrl = 'https://api.eu.bfl.ai'
     return { buffer, contentType: type || 'image/jpeg' }
   }
 
-  return { model, submit, poll, download }
+  return { model, submit, edit, poll, download }
 }
 
 export const bfl = createBfl({
