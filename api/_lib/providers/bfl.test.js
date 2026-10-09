@@ -77,7 +77,7 @@ describe('bfl.edit', () => {
     const bfl = createBfl({ fetchImpl: async () => reponse({ id: '1' }) })
     await expect(appel(bfl)).rejects.toMatchObject({ code: 'provider_error' })
   })
-  it('refuse une image d'origine non https, sans appel réseau', async () => {
+  it('refuse une image d origine non https, sans appel réseau', async () => {
     const fetchImpl = vi.fn()
     const bfl = createBfl({ fetchImpl })
     for (const inputImageUrl of ['http://x.example/a.png', 'pas une url', '']) {
