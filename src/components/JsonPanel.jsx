@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { normaliserGabarit } from '../lib/gabarit.js'
 import { extraireJson } from '../lib/extraireJson.js'
+import { detecterTypeJson, messageTypeNonPris } from '../lib/typeJson.js'
 import { CONSIGNE_IMAGE_VERS_JSON } from '../lib/consigneImage.js'
 
 export default function JsonPanel({ gabarit, onImporter }) {
@@ -35,7 +36,13 @@ export default function JsonPanel({ gabarit, onImporter }) {
     setMessage('')
     setErreur('')
     try {
-      const { gabarit: g, avertissements } = normaliserGabarit(extraireJson(texte))
+      const brut = extraireJson(texte)
+      const type = detecterTypeJson(brut)
+      if (type !== 'gabarit') {
+        setErreur(messageTypeNonPris(type))
+        return
+      }
+      const { gabarit: g, avertissements } = normaliserGabarit(brut)
       onImporter(g)
       setMessage(avertissements.length ? avertissements.join(' ') : 'JSON chargé dans le formulaire. Relisez-le et corrigez-le avant de créer l\'image.')
     } catch (e) {
