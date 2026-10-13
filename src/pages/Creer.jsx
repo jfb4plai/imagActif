@@ -3,6 +3,8 @@ import GabaritForm from '../components/GabaritForm.jsx'
 import JsonPanel from '../components/JsonPanel.jsx'
 import EnregistrerModele from '../components/EnregistrerModele.jsx'
 import RetoucheForm from '../components/RetoucheForm.jsx'
+import SerieForm from '../components/SerieForm.jsx'
+import { serieVide } from '../lib/serie.js'
 import BandeauRegime from '../components/BandeauRegime.jsx'
 import { api } from '../lib/api.js'
 import { getGeneration, urlsSignees } from '../lib/data.js'
@@ -21,16 +23,20 @@ export default function Creer({ brouillon, setBrouillon, compte, usage, regime, 
   const [resultat, setResultat] = useState(null)
   const [modele, setModele] = useState(false)
   const [retouche, setRetouche] = useState(false)
+  const [lotEnCours, setLotEnCours] = useState(false)
   const actif = useRef(true)
   useEffect(() => { actif.current = true; return () => { actif.current = false } }, [])
 
   const majGabarit = (gabarit) => setBrouillon({ ...brouillon, gabarit })
+  const serie = brouillon.serie ?? serieVide()
+  const majSerie = (s) => setBrouillon((b) => ({ ...b, serie: s }))
   // Un JSON importé ne doit pas écraser les champs verrouillés du modèle.
   const importerGabarit = (importe) => majGabarit(
     brouillon.verrous.reduce((g, chemin) => setIn(g, chemin, getIn(brouillon.gabarit, chemin)), importe),
   )
 
-  async function suivre(id) {
+  // Attend la fin d'une génération et renvoie { gen, url } ; renvoie undefined si la page a été quittée.
+  async function attendre(id) {
     const debut = Date.now()
     while (actif.current && Date.now() - debut < ATTENTE_MAX_MS) {
       await pause(2000)
@@ -38,13 +44,18 @@ export default function Creer({ brouillon, setBrouillon, compte, usage, regime, 
       if (s.status === 'done') {
         const gen = await getGeneration(id)
         const urls = await urlsSignees([gen.image_path])
-        if (actif.current) setResultat({ gen, url: urls[gen.image_path] })
-        return
+        return { gen, url: urls[gen.image_path] }
       }
       if (s.status === 'refused') throw echec('moderated')
       if (s.status === 'failed') throw echec('failed')
     }
     if (actif.current) throw echec('timeout')
+    return undefined
+  }
+
+  async function suivre(id) {
+    const r = await attendre(id)
+    if (r && actif.current) setResultat(r)
   }
 
   // « Faire une variante » depuis le résultat : on est déjà sur le formulaire, qui contient déjà cette description.
@@ -105,7 +116,7 @@ export default function Creer({ brouillon, setBrouillon, compte, usage, regime, 
     recharger()
   }
 
-  const bloque = regime === 'none' || etat === 'cours'
+  const bloque = regime === 'none' || etat === 'cours' || lotEnCours
 
   return (
     <div className="plai-section">
@@ -122,6 +133,19 @@ export default function Creer({ brouillon, setBrouillon, compte, usage, regime, 
       <div className="img-split" style={{ marginTop: '1rem' }}>
         <div>
           <GabaritForm gabarit={brouillon.gabarit} onChange={majGabarit} verrous={brouillon.verrous} />
+          <SerieForm
+            serie={serie}
+            setSerie={majSerie}
+            gabarit={brouillon.gabarit}
+            verrous={brouillon.verrous}
+            regime={regime}
+            usage={usage}
+            bloque={regime === 'none' || etat === 'cours'}
+            generer={(g) => api.generer(g, null)}
+            attendre={attendre}
+            recharger={recharger}
+            onEnCours={setLotEnCours}
+          />
           <JsonPanel gabarit={brouillon.gabarit} onImporter={importerGabarit} />
         </div>
         <div>

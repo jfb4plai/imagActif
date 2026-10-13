@@ -4,6 +4,7 @@ import { useCompte } from './lib/useCompte.js'
 import { determineRegime } from './lib/regime.js'
 import { TERMS_VERSION } from './lib/terms.js'
 import { gabaritVide } from './lib/gabarit.js'
+import { serieVide } from './lib/serie.js'
 import Login from './pages/Login.jsx'
 import Reglement from './pages/Reglement.jsx'
 import Creer from './pages/Creer.jsx'
@@ -12,7 +13,7 @@ import Modeles from './pages/Modeles.jsx'
 import MesDonnees from './pages/MesDonnees.jsx'
 
 const VUES = [['creer', 'Créer'], ['historique', 'Historique'], ['modeles', 'Modèles'], ['donnees', 'Mes données']]
-const brouillonVide = () => ({ gabarit: gabaritVide(), parentId: null, verrous: [] })
+const brouillonVide = () => ({ gabarit: gabaritVide(), parentId: null, verrous: [], serie: serieVide() })
 
 function Contenu() {
   const { user, loading, signOut, passwordRecovery } = useAuth()
@@ -30,7 +31,7 @@ function Contenu() {
   const regime = accepte ? determineRegime({ trialStartedAt: compte.trial_started_at, hasOwnKey: compte.has_own_key }) : 'none'
 
   function ouvrirDansCreer(b) {
-    setBrouillon({ parentId: null, verrous: [], ...b })
+    setBrouillon({ parentId: null, verrous: [], serie: serieVide(), ...b })
     setVue('creer')
   }
 
