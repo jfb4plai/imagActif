@@ -4,7 +4,7 @@ import { useCompte } from './lib/useCompte.js'
 import { determineRegime } from './lib/regime.js'
 import { TERMS_VERSION } from './lib/terms.js'
 import { gabaritVide } from './lib/gabarit.js'
-import { serieVide } from './lib/serie.js'
+import { serieVide, retirerColonnesVerrouillees } from './lib/serie.js'
 import Login from './pages/Login.jsx'
 import Reglement from './pages/Reglement.jsx'
 import Creer from './pages/Creer.jsx'
@@ -20,6 +20,7 @@ function Contenu() {
   const { chargement, compte, usage, recharger } = useCompte(user)
   const [vue, setVue] = useState('creer')
   const [brouillon, setBrouillon] = useState(brouillonVide)
+  const [lotEnCours, setLotEnCours] = useState(false) // pendant une série, quitter la page Créer interromprait le lot
 
   // Un autre compte sur le même navigateur ne doit pas hériter du brouillon ni de l'onglet du précédent.
   useEffect(() => {
@@ -31,7 +32,11 @@ function Contenu() {
   const regime = accepte ? determineRegime({ trialStartedAt: compte.trial_started_at, hasOwnKey: compte.has_own_key }) : 'none'
 
   function ouvrirDansCreer(b) {
-    setBrouillon({ parentId: null, verrous: [], serie: serieVide(), ...b })
+    // Le tableau de série saisi est gardé, sauf les colonnes que le modèle choisi verrouille.
+    setBrouillon((prev) => {
+      const suivant = { parentId: null, verrous: [], serie: prev.serie ?? serieVide(), ...b }
+      return { ...suivant, serie: retirerColonnesVerrouillees(suivant.serie, suivant.verrous) }
+    })
     setVue('creer')
   }
 
@@ -40,7 +45,7 @@ function Contenu() {
     if (!user || passwordRecovery) page = <Login />
     else if (chargement) page = null
     else if (!accepte) page = <Reglement onAccepte={recharger} />
-    else if (vue === 'creer') page = <Creer brouillon={brouillon} setBrouillon={setBrouillon} compte={compte} usage={usage} regime={regime} recharger={recharger} ouvrirDansCreer={ouvrirDansCreer} />
+    else if (vue === 'creer') page = <Creer brouillon={brouillon} setBrouillon={setBrouillon} compte={compte} usage={usage} regime={regime} recharger={recharger} ouvrirDansCreer={ouvrirDansCreer} lotEnCours={lotEnCours} setLotEnCours={setLotEnCours} />
     else if (vue === 'historique') page = <Historique ouvrirDansCreer={ouvrirDansCreer} />
     else if (vue === 'modeles') page = <Modeles ouvrirDansCreer={ouvrirDansCreer} />
     else page = <MesDonnees compte={compte} regime={regime} recharger={recharger} signOut={signOut} />
@@ -57,11 +62,12 @@ function Contenu() {
           <div className="plai-nav-actions img-tabs">
             {VUES.map(([id, label]) => (
               <button key={id} type="button" className="plai-nav-link" aria-current={vue === id ? 'page' : undefined}
+                disabled={lotEnCours} title={lotEnCours ? 'Une série est en cours : attendez la fin ou arrêtez-la.' : undefined}
                 style={vue === id ? { fontWeight: 700, textDecoration: 'underline' } : undefined} onClick={() => setVue(id)}>
                 {label}
               </button>
             ))}
-            <button type="button" className="plai-nav-link" onClick={signOut}>Se déconnecter</button>
+            <button type="button" className="plai-nav-link" disabled={lotEnCours} onClick={signOut}>Se déconnecter</button>
           </div>
         )}
       </nav>

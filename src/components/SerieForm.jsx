@@ -4,7 +4,8 @@ import { messageErreur } from '../lib/messages.js'
 import { executerLot } from '../lib/lot.js'
 import {
   PLAFOND_SERIE, MAX_CELLULE, MAX_COLONNES_EXTRA, CHEMIN_SUJET, COLONNES_EXTRA, colonnesDisponibles, sujetVerrouille,
-  changerColonne, majCellule, ajouterLigne, supprimerLigne, collerTableau, copierTableau, lignesUtiles, gabaritPourLigne, verifierLot,
+  changerColonne, majCellule, ajouterLigne, supprimerLigne, collerTableau, copierTableau, lignesALancer, gabaritPourLigne, verifierLot,
+  majEtatSerie, marquerAttente, effacerSuivi,
 } from '../lib/serie.js'
 
 const LIBELLES = {
@@ -15,7 +16,7 @@ const libelleColonne = (chemin) => COLONNES_EXTRA.find((c) => c.chemin === chemi
 
 export default function SerieForm({ serie, setSerie, gabarit, verrous, regime, usage, bloque, generer, attendre, recharger, onEnCours }) {
   const [ouvert, setOuvert] = useState(false)
-  const [etats, setEtats] = useState([])
+  const [vignettes, setVignettes] = useState({}) // liens signés temporaires : non conservés avec le tableau
   const [enCours, setEnCours] = useState(false)
   const [erreurs, setErreurs] = useState([])
   const [message, setMessage] = useState('')
@@ -43,20 +44,22 @@ export default function SerieForm({ serie, setSerie, gabarit, verrous, regime, u
   }
 
   const chemins = [CHEMIN_SUJET, ...serie.colonnes]
-  const utiles = lignesUtiles(serie)
-  const n = utiles.length
+  const etats = serie.etats ?? []
+  const reprise = etats.some((e) => e?.statut)
+  const n = lignesALancer(serie).length
   const reste = Math.max(LIMITE_ESSAI - usage, 0)
   const verrouille = enCours
   const colonnesLibres = colonnesDisponibles(verrous)
-  const majEtat = (i, e) => setEtats((prev) => { const s = [...prev]; s[i] = { ...(s[i] ?? {}), ...e }; return s })
 
-  async function lancer(indices, premier) {
+  // « Créer » ne recrée jamais une image déjà terminée ou à vérifier : seules les lignes restantes partent.
+  async function lancer() {
     setMessage('')
     setErreurs([])
-    const problemes = verifierLot(gabarit, chemins, serie.lignes)
+    const indices = lignesALancer(serie)
+    const problemes = verifierLot(gabarit, chemins, serie.lignes.map((l, i) => (indices.includes(i) ? l : [''])))
     if (problemes.length) { setErreurs(problemes); return }
     arretRef.current = false
-    if (premier) setEtats(serie.lignes.map((_, i) => (indices.includes(i) ? { statut: 'attente' } : {})))
+    setSerie((s) => marquerAttente(s, indices))
     setEnCours(true)
     onEnCours(true)
     const { codeArret } = await executerLot({
@@ -66,24 +69,27 @@ export default function SerieForm({ serie, setSerie, gabarit, verrous, regime, u
       generer,
       attendre,
       arret: () => arretRef.current || !vivant.current,
-      onEtat: (i, e) => { if (vivant.current) majEtat(i, e) },
+      onEtat: (i, e) => {
+        const { url, ...persistant } = e
+        if (url && vivant.current) setVignettes((v) => ({ ...v, [i]: url }))
+        setSerie((s) => majEtatSerie(s, i, { message: undefined, genId: undefined, ...persistant }))
+      },
     })
     if (vivant.current) {
       setEnCours(false)
-      if (codeArret) setMessage(messageErreur(codeArret))
-      else if (arretRef.current) setMessage('Série arrêtée. Les lignes « non lancées » peuvent être relancées.')
+      if (codeArret === 'timeout') setMessage(`${messageErreur('timeout')} Les images suivantes ne sont pas lancées : créez-les ensuite avec « Créer les images restantes ».`)
+      else if (codeArret) setMessage(messageErreur(codeArret))
+      else if (arretRef.current) setMessage('Série arrêtée. Les lignes non lancées partiront avec « Créer les images restantes ».')
     }
     onEnCours(false)
     recharger()
   }
 
-  const aRelancer = etats.flatMap((e, i) => (e?.statut === 'echec' || e?.statut === 'non_lancee' ? [i] : []))
-
   function coller() {
     const { serie: s, tronque } = collerTableau(serie, collage)
     setSerie(s)
     setCollage('')
-    setEtats([])
+    setVignettes({})
     setMessage(tronque ? `Seules les ${PLAFOND_SERIE} premières lignes ont été gardées.` : '')
   }
 
@@ -117,7 +123,7 @@ export default function SerieForm({ serie, setSerie, gabarit, verrous, regime, u
               <label className="plai-label" htmlFor={`serie-colonne-${p}`}>{`Colonne supplémentaire ${p + 1}`}</label>
               <select id={`serie-colonne-${p}`} className="plai-input" value={choisie} disabled={verrouille}
                 aria-describedby={`serie-colonne-${p}-aide`}
-                onChange={(e) => { setSerie(changerColonne(serie, p, e.target.value)); setEtats([]) }}>
+                onChange={(e) => setSerie(changerColonne(serie, p, e.target.value))}>
                 <option value="">Aucune</option>
                 {colonnesLibres.filter((c) => c.chemin === choisie || c.chemin !== autre).map((c) => (
                   <option key={c.chemin} value={c.chemin}>{c.label}</option>
@@ -151,7 +157,7 @@ export default function SerieForm({ serie, setSerie, gabarit, verrous, regime, u
                     <input className="plai-input" style={{ minWidth: '11rem' }} value={cellule} maxLength={MAX_CELLULE} disabled={verrouille}
                       aria-label={`Ligne ${i + 1} : ${libelle}`}
                       placeholder={j === 0 ? 'un cartable ouvert sur un bureau' : colonne.placeholder}
-                      onChange={(e) => { setSerie(majCellule(serie, i, j, e.target.value)); setEtats([]) }} />
+                      onChange={(e) => setSerie(majCellule(serie, i, j, e.target.value))} />
                   </td>
                 )
               })}
@@ -160,12 +166,12 @@ export default function SerieForm({ serie, setSerie, gabarit, verrous, regime, u
                   <div role="status">
                     <strong>{LIBELLES[etats[i].statut]}</strong>
                     {etats[i].message && <span className="plai-help"> {etats[i].message}</span>}
-                    {etats[i].url && <img src={etats[i].url} alt={`Image générée : ${ligne[0]}`} style={{ display: 'block', maxWidth: '8rem', marginTop: '0.25rem' }} />}
+                    {etats[i].statut === 'fini' && vignettes[i] && <img src={vignettes[i]} alt={`Image générée : ${ligne[0]}`} style={{ display: 'block', maxWidth: '8rem', marginTop: '0.25rem' }} />}
                   </div>
                 )}
                 {!verrouille && serie.lignes.length > 1 && (
                   <button type="button" className="plai-btn plai-btn-ghost" aria-label={`Supprimer la ligne ${i + 1}`}
-                    onClick={() => { setSerie(supprimerLigne(serie, i)); setEtats([]) }}>Supprimer</button>
+                    onClick={() => setSerie(supprimerLigne(serie, i))}>Supprimer</button>
                 )}
               </td>
             </tr>
@@ -196,23 +202,26 @@ export default function SerieForm({ serie, setSerie, gabarit, verrous, regime, u
         {regime === 'trial'
           ? `${pluriel(n, 'image')} = ${n} sur votre quota. Il vous en reste ${reste} aujourd'hui.${n > reste ? ` Le quota ne suffit pas : le lot s'arrêtera après ${pluriel(reste, 'image')}.` : ''}`
           : pluriel(n, 'image')}
-        {' '}Comptez environ 15 secondes par image.
+        {' '}Comptez 10 à 40 secondes par image.
       </p>
 
       <div className="img-actions">
-        <button type="button" className="plai-btn" disabled={n === 0 || bloque || enCours || regime === 'none'}
-          onClick={() => lancer(utiles, true)}>
-          {enCours ? 'Série en cours…' : `Créer la série (${pluriel(n, 'image')})`}
+        <button type="button" className="plai-btn" disabled={n === 0 || bloque || enCours || regime === 'none'} onClick={lancer}>
+          {enCours ? 'Série en cours…' : `${reprise ? 'Créer les images restantes' : 'Créer la série'} (${pluriel(n, 'image')})`}
         </button>
         {enCours && (
           <button type="button" className="plai-btn plai-btn-ghost" onClick={() => { arretRef.current = true }}>Arrêter après l'image en cours</button>
         )}
-        {!enCours && aRelancer.length > 0 && (
-          <button type="button" className="plai-btn plai-btn-ghost" disabled={bloque || regime === 'none'} onClick={() => lancer(aRelancer, false)}>
-            Relancer les lignes en échec ou non lancées ({aRelancer.length})
-          </button>
+        {!enCours && reprise && (
+          <button type="button" className="plai-btn plai-btn-ghost" aria-describedby="serie-effacer-aide"
+            onClick={() => { setSerie(effacerSuivi(serie)); setVignettes({}) }}>Effacer le suivi</button>
         )}
       </div>
+      {!enCours && reprise && (
+        <p className="plai-help" id="serie-effacer-aide">
+          Les images déjà créées ne sont pas recréées. « Effacer le suivi » oublie ce qui a été fait : la série entière pourra alors être recréée, et chaque image comptera de nouveau dans votre quota. Les images déjà créées restent dans l'Historique.
+        </p>
+      )}
 
       <div aria-live="polite">{message && <p className="plai-error" role="alert">{message}</p>}</div>
       {erreurs.length > 0 && (

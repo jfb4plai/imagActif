@@ -56,14 +56,17 @@ describe('executerLot', () => {
     expect(etats[2].statut).toBe('fini')
   })
 
-  it('marque un délai dépassé « à vérifier » et continue', async () => {
+  it('marque un délai dépassé « à vérifier » et arrête le lot (l\'image peut encore occuper le serveur)', async () => {
     const { etats, onEtat } = suivi()
     let n = 0
     const attendre = async (id) => { if (id === 'g0') throw erreur('timeout'); return { gen: { id }, url: id } }
-    await executerLot({ lignes, indices: [0, 1], construire, generer: async () => ({ id: `g${n++}` }), attendre, arret: () => false, onEtat })
+    const r = await executerLot({ lignes, indices: [0, 1, 2], construire, generer: async () => ({ id: `g${n++}` }), attendre, arret: () => false, onEtat })
     expect(etats[0].statut).toBe('a_verifier')
     expect(etats[0].message).toMatch(/Historique/)
-    expect(etats[1].statut).toBe('fini')
+    expect(etats[1].statut).toBe('non_lancee')
+    expect(etats[2].statut).toBe('non_lancee')
+    expect(r.codeArret).toBe('timeout')
+    expect(n).toBe(1)
   })
 
   it('s\'arrête entre deux images quand l\'arrêt est demandé', async () => {

@@ -81,6 +81,29 @@ describe('SerieForm', () => {
     expect(html).not.toContain('Créer la série')
   })
 
+  it('ne propose de créer que les images restantes quand une partie est déjà faite', () => {
+    const html = rendre({ serie: { colonnes: [], lignes: [['un cartable'], ['une trousse']], etats: [{ statut: 'fini' }, {}] } })
+    expect(html).toContain('Terminée')
+    expect(html).toContain('1 image = 1 sur votre quota')
+    expect(html).toMatch(/<button[^>]*>Créer les images restantes \(1 image\)<\/button>/)
+    expect(html).not.toContain('Créer la série')
+    expect(html).toContain('Effacer le suivi')
+  })
+
+  it('n\'offre plus rien à créer quand toutes les images sont faites ou à vérifier', () => {
+    const html = rendre({ serie: { colonnes: [], lignes: [['a'], ['b']], etats: [{ statut: 'fini' }, { statut: 'a_verifier' }] } })
+    expect(html).toContain('À vérifier dans l&#x27;Historique')
+    expect(html).toMatch(/<button[^>]*disabled=""[^>]*>Créer les images restantes \(0 image\)<\/button>/)
+  })
+
+  it('ne montre pas « Effacer le suivi » avant la première création', () => {
+    expect(rendre()).not.toContain('Effacer le suivi')
+  })
+
+  it('annonce une durée réaliste par image', () => {
+    expect(rendre()).toContain('10 à 40 secondes par image')
+  })
+
   it('refuse d\'ajouter une ligne au-delà de 12', () => {
     const lignes = Array.from({ length: 12 }, (_, i) => [`s${i}`])
     const html = rendre({ serie: { colonnes: [], lignes } })

@@ -19,7 +19,11 @@ export const colonnesDisponibles = (verrous = []) => COLONNES_EXTRA.filter((c) =
 export const sujetVerrouille = (verrous = []) => verrous.includes(CHEMIN_SUJET)
 
 // serie = { colonnes: [chemins des colonnes supplémentaires], lignes: [[sujet, ...cellules]] }
-export const serieVide = () => ({ colonnes: [], lignes: [['']] })
+// etats[i] = { statut, message?, genId? } suit chaque ligne ; il vit avec le tableau pour survivre à un changement d'onglet.
+export const serieVide = () => ({ colonnes: [], lignes: [['']], etats: [] })
+
+// Une image terminée, ou dont l'issue est à vérifier dans l'Historique, ne doit jamais être relancée (double débit du quota).
+const STATUTS_TERMINES = ['fini', 'a_verifier']
 
 export function changerColonne(serie, position, chemin) {
   const colonnes = [...serie.colonnes]
@@ -33,11 +37,16 @@ export function changerColonne(serie, position, chemin) {
     while (c.length < n) c.push('')
     return c
   })
-  return { colonnes, lignes }
+  return { ...serie, colonnes, lignes }
 }
 
+// Modifier une cellule remet cette ligne à lancer ; le suivi des autres lignes est conservé.
 export function majCellule(serie, i, j, valeur) {
-  return { ...serie, lignes: serie.lignes.map((l, k) => (k === i ? l.map((c, m) => (m === j ? valeur : c)) : l)) }
+  return {
+    ...serie,
+    lignes: serie.lignes.map((l, k) => (k === i ? l.map((c, m) => (m === j ? valeur : c)) : l)),
+    ...(serie.etats ? { etats: serie.etats.map((e, k) => (k === i ? {} : e)) } : {}),
+  }
 }
 
 export function ajouterLigne(serie) {
@@ -47,7 +56,11 @@ export function ajouterLigne(serie) {
 
 export function supprimerLigne(serie, i) {
   const lignes = serie.lignes.filter((_, k) => k !== i)
-  return { ...serie, lignes: lignes.length ? lignes : [Array(1 + serie.colonnes.length).fill('')] }
+  return {
+    ...serie,
+    lignes: lignes.length ? lignes : [Array(1 + serie.colonnes.length).fill('')],
+    ...(serie.etats ? { etats: serie.etats.filter((_, k) => k !== i) } : {}),
+  }
 }
 
 // Texte collé depuis un tableur : une ligne par image, cellules séparées par des tabulations. Une ligne sans sujet est ignorée.
@@ -66,7 +79,33 @@ export function parserTableau(texte, nbColonnes) {
 
 export function collerTableau(serie, texte) {
   const { lignes, tronque } = parserTableau(texte, 1 + serie.colonnes.length)
-  return { serie: lignes.length ? { ...serie, lignes } : serie, tronque }
+  return { serie: lignes.length ? { ...serie, lignes, etats: [] } : serie, tronque }
+}
+
+// Lignes à créer : celles qui ont un sujet et dont l'image n'est ni terminée ni à vérifier.
+export const lignesALancer = (serie) => lignesUtiles(serie).filter((i) => !STATUTS_TERMINES.includes(serie.etats?.[i]?.statut))
+
+const etatsComplets = (serie) => Array.from({ length: serie.lignes.length }, (_, k) => serie.etats?.[k] ?? {})
+
+export function majEtatSerie(serie, i, etat) {
+  const etats = etatsComplets(serie)
+  etats[i] = { ...etats[i], ...etat }
+  return { ...serie, etats }
+}
+
+export function marquerAttente(serie, indices) {
+  return { ...serie, etats: etatsComplets(serie).map((e, k) => (indices.includes(k) ? { ...e, statut: 'attente' } : e)) }
+}
+
+export const effacerSuivi = (serie) => ({ ...serie, etats: [] })
+
+// Un modèle qui verrouille un champ ne peut pas servir de colonne : on la retire en gardant les autres cellules.
+export function retirerColonnesVerrouillees(serie, verrous = []) {
+  let s = serie
+  for (let i = s.colonnes.findIndex((c) => verrous.includes(c)); i !== -1; i = s.colonnes.findIndex((c) => verrous.includes(c))) {
+    s = changerColonne(s, i, '')
+  }
+  return s
 }
 
 export const copierTableau = (lignes) => lignes.map((l) => l.join('\t')).join('\n')

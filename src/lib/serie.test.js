@@ -5,6 +5,7 @@ import {
   PLAFOND_SERIE, MAX_CELLULE, CHEMIN_SUJET, COLONNES_EXTRA, colonnesDisponibles, sujetVerrouille, serieVide,
   changerColonne, majCellule, ajouterLigne, supprimerLigne, parserTableau, collerTableau, copierTableau,
   lignesUtiles, gabaritPourLigne, verifierLot,
+  lignesALancer, majEtatSerie, marquerAttente, effacerSuivi, retirerColonnesVerrouillees,
 } from './serie.js'
 
 describe('COLONNES_EXTRA', () => {
@@ -31,7 +32,7 @@ describe('COLONNES_EXTRA', () => {
 
 describe('édition du tableau', () => {
   it('démarre avec une ligne vide et aucune colonne supplémentaire', () => {
-    expect(serieVide()).toEqual({ colonnes: [], lignes: [['']] })
+    expect(serieVide()).toEqual({ colonnes: [], lignes: [['']], etats: [] })
   })
   it('ajoute une colonne et élargit les lignes', () => {
     const s = changerColonne({ colonnes: [], lignes: [['a'], ['b']] }, 0, 'lumiere')
@@ -90,8 +91,12 @@ describe('parserTableau', () => {
 describe('collerTableau / copierTableau', () => {
   it('remplace les lignes selon le nombre de colonnes courant', () => {
     const { serie, tronque } = collerTableau({ colonnes: ['lumiere'], lignes: [['']] }, 'chat\tdouce\nchien\tdure')
-    expect(serie).toEqual({ colonnes: ['lumiere'], lignes: [['chat', 'douce'], ['chien', 'dure']] })
+    expect(serie).toEqual({ colonnes: ['lumiere'], lignes: [['chat', 'douce'], ['chien', 'dure']], etats: [] })
     expect(tronque).toBe(false)
+  })
+  it('efface le suivi quand le tableau est remplacé', () => {
+    const { serie } = collerTableau({ colonnes: [], lignes: [['a']], etats: [{ statut: 'fini' }] }, 'b')
+    expect(serie.etats).toEqual([])
   })
   it('garde le tableau si le texte collé ne contient rien d\'exploitable', () => {
     const avant = { colonnes: [], lignes: [['chat']] }
@@ -99,6 +104,70 @@ describe('collerTableau / copierTableau', () => {
   })
   it('copie le tableau en texte à tabulations', () => {
     expect(copierTableau([['chat', 'douce'], ['chien', '']])).toBe('chat\tdouce\nchien\t')
+  })
+})
+
+describe('suivi des images dans la série', () => {
+  const serie = {
+    colonnes: [],
+    lignes: [['a'], ['b'], ['c'], ['d'], ['']],
+    etats: [{ statut: 'fini' }, { statut: 'echec' }, { statut: 'a_verifier' }, { statut: 'non_lancee' }, {}],
+  }
+  it('ne propose de lancer ni les images terminées ni celles à vérifier (pas de double débit)', () => {
+    expect(lignesALancer(serie)).toEqual([1, 3])
+  })
+  it('propose toutes les lignes utiles quand aucun suivi n\'existe', () => {
+    expect(lignesALancer({ colonnes: [], lignes: [['a'], ['b']] })).toEqual([0, 1])
+  })
+  it('met à jour l\'état d\'une ligne sans muter ni perdre les autres', () => {
+    const s = majEtatSerie(serie, 1, { statut: 'cours', message: undefined })
+    expect(s.etats[1].statut).toBe('cours')
+    expect(s.etats[0].statut).toBe('fini')
+    expect(serie.etats[1].statut).toBe('echec')
+  })
+  it('crée le suivi d\'une série qui n\'en a pas encore', () => {
+    const s = majEtatSerie({ colonnes: [], lignes: [['a'], ['b']] }, 1, { statut: 'fini' })
+    expect(s.etats).toEqual([{}, { statut: 'fini' }])
+  })
+  it('marque les lignes demandées en attente', () => {
+    const s = marquerAttente(serie, [1, 3])
+    expect(s.etats.map((e) => e.statut)).toEqual(['fini', 'attente', 'a_verifier', 'attente', undefined])
+  })
+  it('efface le suivi', () => {
+    expect(effacerSuivi(serie).etats).toEqual([])
+    expect(lignesALancer(effacerSuivi(serie))).toEqual([0, 1, 2, 3])
+  })
+  it('modifier une cellule remet cette ligne à lancer sans toucher aux autres', () => {
+    const s = majCellule(serie, 0, 0, 'a2')
+    expect(s.etats[0]).toEqual({})
+    expect(s.etats[1].statut).toBe('echec')
+    expect(lignesALancer(s)).toEqual([0, 1, 3])
+  })
+  it('supprimer une ligne décale le suivi', () => {
+    const s = supprimerLigne(serie, 0)
+    expect(s.etats.map((e) => e.statut)).toEqual(['echec', 'a_verifier', 'non_lancee', undefined])
+  })
+  it('changer de colonne garde le suivi', () => {
+    expect(changerColonne(serie, 0, 'lumiere').etats).toEqual(serie.etats)
+  })
+})
+
+describe('retirerColonnesVerrouillees', () => {
+  it('retire les colonnes verrouillées par un modèle et garde les autres cellules', () => {
+    const serie = { colonnes: ['lumiere', 'decor.lieu'], lignes: [['a', 'douce', 'gare']], etats: [] }
+    const s = retirerColonnesVerrouillees(serie, ['lumiere'])
+    expect(s.colonnes).toEqual(['decor.lieu'])
+    expect(s.lignes).toEqual([['a', 'gare']])
+  })
+  it('ne change rien quand aucune colonne n\'est verrouillée', () => {
+    const serie = { colonnes: ['lumiere'], lignes: [['a', 'douce']], etats: [] }
+    expect(retirerColonnesVerrouillees(serie, ['style.type'])).toEqual(serie)
+  })
+  it('retire aussi la seconde colonne verrouillée', () => {
+    const serie = { colonnes: ['lumiere', 'decor.lieu'], lignes: [['a', 'douce', 'gare']] }
+    const s = retirerColonnesVerrouillees(serie, ['lumiere', 'decor.lieu'])
+    expect(s.colonnes).toEqual([])
+    expect(s.lignes).toEqual([['a']])
   })
 })
 

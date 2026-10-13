@@ -25,7 +25,10 @@ export async function executerLot({ lignes, indices, construire, generer, attend
         codeArret = e.code
         onEtat(i, { statut: 'non_lancee', message: messageErreur(e.code, e.message) })
       } else if (e.code === 'timeout') {
-        // L'image peut encore aboutir : ne pas la relancer pour ne pas débiter le quota deux fois.
+        // L'image peut encore aboutir et occuper le serveur (une seule génération en cours à la fois) : on ne la relance pas
+        // (double débit) et on n'enchaîne pas, la suivante serait refusée.
+        stop = true
+        codeArret = 'timeout'
         onEtat(i, { statut: 'a_verifier', message: messageErreur(e.code, e.message) })
       } else {
         onEtat(i, { statut: 'echec', message: messageErreur(e.code, e.message) })

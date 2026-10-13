@@ -32,9 +32,9 @@ Unités :
   - `parserTableau(texte, nbColonnes)` : une ligne par image, cellules séparées par des tabulations, lignes vides ignorées, cellules tronquées à 500 caractères, 12 lignes maximum, colonnes en trop ignorées.
   - `gabaritPourLigne(base, colonnes, ligne)` : copie profonde du gabarit du formulaire avec les valeurs de la ligne posées via `setIn`.
   - `PLAFOND_SERIE = 12`.
-- `src/lib/lot.js` : `executerLot({ lignes, base, colonnes, generer, suivre, arret })`, déroulé séquentiel avec l'API et le suivi injectés (testable sans réseau). Renvoie l'état de chaque ligne.
+- `src/lib/lot.js` : `executerLot({ lignes, indices, construire, generer, attendre, arret, onEtat })`, déroulé séquentiel avec l'API et le suivi injectés (testable sans réseau). Chaque changement d'état d'une ligne est signalé par `onEtat` ; renvoie `{ codeArret }`.
 - `src/components/SerieForm.jsx` : tableau, choix des colonnes, collage, compteur de quota, suivi par ligne.
-- `src/pages/Creer.jsx` : extraction de `suivre` pour qu'il renvoie `{ gen, url }` au lieu d'écrire dans l'état de l'écran (le formulaire simple continue d'appeler `setResultat` avec ce retour). La section Série s'ajoute sous le formulaire.
+- `src/pages/Creer.jsx` : extraction d'`attendre` (renvoie `{ gen, url }`) hors de `suivre`, qui s'en sert pour écrire dans l'état de l'écran. `lotEnCours` vit dans `App.jsx` : les onglets et « Se déconnecter » sont désactivés pendant un lot. Le suivi par ligne (`serie.etats`) est conservé dans le brouillon avec le tableau ; `ouvrirDansCreer` garde le tableau et retire seulement les colonnes verrouillées par le modèle choisi. La section Série s'ajoute sous le formulaire.
 - Le tableau est conservé dans `brouillon` (état de l'application) : il survit au changement d'onglet, pas au rechargement.
 
 ## Interface
@@ -57,9 +57,9 @@ Pour chaque ligne non vide, dans l'ordre :
 1. `generer(gabaritPourLigne(...), null)` puis `suivre(id)`.
 2. État de ligne : `attente`, `cours`, `fini` (avec miniature), `echec` (avec message), `non_lancee`.
 3. Arrêt du lot (la ligne bloquée et les suivantes en `non_lancee`) pour les codes : `quota_user`, `quota_global`, `trial_over`, `no_credits`, `invalid_key`, `key_unreadable`, `terms`, `email_unconfirmed`, `busy`, `rate_limited`. Messages via `messageErreur`.
-4. Échec isolé (`moderated`, `failed`, `provider_error`) : la ligne passe en `echec`, le lot continue. Délai dépassé (`timeout`) : la ligne passe en `a_verifier` (l'image peut encore aboutir, visible dans l'Historique), le lot continue, et cette ligne n'est pas relancée automatiquement pour ne pas débiter le quota deux fois.
+4. Échec isolé (`moderated`, `failed`, `provider_error`) : la ligne passe en `echec`, le lot continue. Délai dépassé (`timeout`) : la ligne passe en `a_verifier` (l'image peut encore aboutir, visible dans l'Historique) et **le lot s'arrête** : une seule génération « en cours » est permise et la suivante serait refusée (`busy`). Une ligne `a_verifier` n'est jamais relancée pour ne pas débiter le quota deux fois.
 5. « Arrêter après l'image en cours » : positionne `arret`, le lot s'interrompt entre deux images.
-6. « Relancer les lignes en échec ou non lancées » : ne relance que ces lignes, les images réussies ne sont pas refaites (et ne sont pas re-débitées du quota).
+6. Un seul bouton de création : « Créer la série », qui devient « Créer les images restantes » dès qu'un suivi existe. Il ne lance que les lignes à créer (sujet rempli, état ni `fini` ni `a_verifier`), jamais une image déjà faite. Modifier une cellule remet seulement cette ligne à créer. « Effacer le suivi » permet de tout recréer volontairement.
 7. Alerte `beforeunload` pendant l'exécution.
 8. Graine : celle du formulaire si elle est renseignée (commune à toutes les images), sinon tirée par le serveur à chaque image. Aucun `parentId`.
 9. Après le lot : `recharger()` (quota affiché) une fois, pas à chaque image.

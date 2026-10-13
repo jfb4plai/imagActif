@@ -17,19 +17,19 @@ const ATTENTE_MAX_MS = 120000
 const pause = (ms) => new Promise((r) => setTimeout(r, ms))
 const echec = (code) => Object.assign(new Error(), { code })
 
-export default function Creer({ brouillon, setBrouillon, compte, usage, regime, recharger, ouvrirDansCreer }) {
+export default function Creer({ brouillon, setBrouillon, compte, usage, regime, recharger, ouvrirDansCreer, lotEnCours, setLotEnCours }) {
   const [etat, setEtat] = useState('repos') // repos | cours | fini
   const [erreur, setErreur] = useState('')
   const [resultat, setResultat] = useState(null)
   const [modele, setModele] = useState(false)
   const [retouche, setRetouche] = useState(false)
-  const [lotEnCours, setLotEnCours] = useState(false)
   const actif = useRef(true)
   useEffect(() => { actif.current = true; return () => { actif.current = false } }, [])
 
   const majGabarit = (gabarit) => setBrouillon({ ...brouillon, gabarit })
   const serie = brouillon.serie ?? serieVide()
-  const majSerie = (s) => setBrouillon((b) => ({ ...b, serie: s }))
+  // Accepte une valeur ou une fonction (le suivi du lot met la série à jour de façon asynchrone).
+  const majSerie = (s) => setBrouillon((b) => ({ ...b, serie: typeof s === 'function' ? s(b.serie ?? serieVide()) : s }))
   // Un JSON importé ne doit pas écraser les champs verrouillés du modèle.
   const importerGabarit = (importe) => majGabarit(
     brouillon.verrous.reduce((g, chemin) => setIn(g, chemin, getIn(brouillon.gabarit, chemin)), importe),
