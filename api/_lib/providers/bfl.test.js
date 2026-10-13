@@ -108,6 +108,69 @@ describe('bfl.poll', () => {
   })
 })
 
+describe('bfl.poll : repli quand l\'hôte de suivi est injoignable', () => {
+  const EU2 = 'https://api.eu2.bfl.ai/v1/get_result?id=job-1'
+  const panne = () => Object.assign(new TypeError('fetch failed'), { cause: { code: 'UND_ERR_CONNECT_TIMEOUT' } })
+
+  it('suit alors le job via get_result sur l\'hôte d\'envoi, avec la clé', async () => {
+    const fetchImpl = vi.fn(async (url) => {
+      if (url.startsWith('https://api.eu2.bfl.ai')) throw panne()
+      return reponse({ status: 'Ready', result: { sample: 'https://delivery.bfl.ai/x.jpg' } })
+    })
+    const r = await createBfl({ fetchImpl }).poll({ apiKey: 'K', pollingUrl: EU2 })
+    expect(r).toEqual({ state: 'ready', sampleUrl: 'https://delivery.bfl.ai/x.jpg' })
+    const [url, init] = fetchImpl.mock.calls[1]
+    expect(url).toBe('https://api.eu.bfl.ai/v1/get_result?id=job-1')
+    expect(init.headers['x-key']).toBe('K')
+  })
+
+  it('utilise l\'hôte de baseUrl pour le repli', async () => {
+    const fetchImpl = vi.fn(async (url) => {
+      if (url.startsWith('https://api.eu2.bfl.ai')) throw panne()
+      return reponse({ status: 'Pending' })
+    })
+    await createBfl({ fetchImpl, baseUrl: 'https://api.bfl.ai' }).poll({ apiKey: 'K', pollingUrl: EU2 })
+    expect(fetchImpl.mock.calls[1][0]).toBe('https://api.bfl.ai/v1/get_result?id=job-1')
+  })
+
+  it('ne se replie pas sur une réponse HTTP d\'erreur : la clé refusée reste une clé refusée', async () => {
+    const fetchImpl = vi.fn(async () => reponse({}, { status: 401 }))
+    await expect(createBfl({ fetchImpl }).poll({ apiKey: 'K', pollingUrl: EU2 })).rejects.toMatchObject({ code: 'invalid_key' })
+    expect(fetchImpl).toHaveBeenCalledTimes(1)
+  })
+
+  it('signale une erreur du fournisseur si les deux hôtes sont injoignables', async () => {
+    const fetchImpl = vi.fn(async () => { throw panne() })
+    await expect(createBfl({ fetchImpl }).poll({ apiKey: 'K', pollingUrl: EU2 })).rejects.toMatchObject({ code: 'provider_error' })
+    expect(fetchImpl).toHaveBeenCalledTimes(2)
+  })
+
+  it('ne retente pas le même hôte, et signale une erreur du fournisseur', async () => {
+    const fetchImpl = vi.fn(async () => { throw panne() })
+    const url = 'https://api.eu.bfl.ai/v1/get_result?id=job-1'
+    await expect(createBfl({ fetchImpl }).poll({ apiKey: 'K', pollingUrl: url })).rejects.toMatchObject({ code: 'provider_error' })
+    expect(fetchImpl).toHaveBeenCalledTimes(1)
+  })
+
+  it('ne se replie pas quand l\'adresse de suivi n\'a pas d\'identifiant', async () => {
+    const fetchImpl = vi.fn(async () => { throw panne() })
+    await expect(createBfl({ fetchImpl }).poll({ apiKey: 'K', pollingUrl: 'https://api.eu2.bfl.ai/v1/get_result' })).rejects.toMatchObject({ code: 'provider_error' })
+    expect(fetchImpl).toHaveBeenCalledTimes(1)
+  })
+
+  it('le repli reste dans le domaine bfl.ai : un baseUrl étranger est refusé', async () => {
+    const fetchImpl = vi.fn(async () => { throw panne() })
+    await expect(createBfl({ fetchImpl, baseUrl: 'https://evil.example.com' }).poll({ apiKey: 'K', pollingUrl: EU2 })).rejects.toBeInstanceOf(ProviderError)
+    expect(fetchImpl).toHaveBeenCalledTimes(1)
+  })
+
+  it('borne chaque appel de suivi par un délai', async () => {
+    const fetchImpl = vi.fn(async () => reponse({ status: 'Pending' }))
+    await createBfl({ fetchImpl }).poll({ apiKey: 'K', pollingUrl: EU2 })
+    expect(fetchImpl.mock.calls[0][1].signal).toBeInstanceOf(AbortSignal)
+  })
+})
+
 describe('bfl.download', () => {
   it('télécharge sans envoyer la clé', async () => {
     const fetchImpl = vi.fn(async () => reponse(new Uint8Array([1, 2, 3]), { headers: { 'content-type': 'image/png' } }))

@@ -8,6 +8,7 @@ export class ProviderError extends Error {
 }
 
 const MAX_OCTETS = 20 * 1024 * 1024
+const DELAI_SUIVI_MS = 8000 // une panne de réseau ne doit pas bloquer la fonction jusqu'à sa limite de durée
 
 function erreurHttp(status) {
   if (status === 401 || status === 403) return new ProviderError('invalid_key', 'Clé refusée par BFL.', status)
@@ -63,11 +64,37 @@ export function createBfl({ fetchImpl = fetch, baseUrl = 'https://api.eu.bfl.ai'
     return envoyer(apiKey, { prompt, input_image: inputImageUrl })
   }
 
+  async function lireSuivi(apiKey, url) {
+    const resp = await fetchImpl(url, { headers: { accept: 'application/json', 'x-key': apiKey }, signal: AbortSignal.timeout(DELAI_SUIVI_MS) })
+    if (!resp.ok) throw erreurHttp(resp.status)
+    return resp.json()
+  }
+
+  // L'hôte de suivi indiqué par BFL (ex. api.eu2.bfl.ai) peut être injoignable alors que l'hôte d'envoi répond :
+  // on suit alors le même job par get_result sur l'hôte d'envoi (même domaine bfl.ai, même clé, même identifiant).
+  async function suivreParRepli(apiKey, pollingUrl) {
+    const injoignable = new ProviderError('provider_error', 'Suivi BFL injoignable.')
+    const url = new URL(pollingUrl)
+    const id = url.searchParams.get('id')
+    if (!id || new URL(baseUrl).hostname === url.hostname) throw injoignable
+    const repli = `${baseUrl}/v1/get_result?id=${encodeURIComponent(id)}`
+    verifierUrlBfl(repli)
+    try {
+      return await lireSuivi(apiKey, repli)
+    } catch (err) {
+      throw err instanceof ProviderError ? err : injoignable
+    }
+  }
+
   async function poll({ apiKey, pollingUrl }) {
     verifierUrlBfl(pollingUrl)
-    const resp = await fetchImpl(pollingUrl, { headers: { accept: 'application/json', 'x-key': apiKey } })
-    if (!resp.ok) throw erreurHttp(resp.status)
-    const data = await resp.json()
+    let data
+    try {
+      data = await lireSuivi(apiKey, pollingUrl)
+    } catch (err) {
+      if (err instanceof ProviderError) throw err // BFL a répondu (clé refusée, quota…) : pas un problème de réseau
+      data = await suivreParRepli(apiKey, pollingUrl)
+    }
     switch (data.status) {
       case 'Ready': {
         const sampleUrl = data.result?.sample
