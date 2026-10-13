@@ -131,7 +131,8 @@ export default function SerieForm({ serie, setSerie, gabarit, verrous, regime, u
         })}
       </div>
 
-      <table style={{ width: '100%', marginTop: '0.75rem' }}>
+      <div style={{ overflowX: 'auto', marginTop: '0.75rem' }}>
+      <table style={{ width: '100%' }}>
         <thead>
           <tr>
             <th scope="col">Sujet</th>
@@ -147,7 +148,7 @@ export default function SerieForm({ serie, setSerie, gabarit, verrous, regime, u
                 const libelle = j === 0 ? 'Sujet' : colonne.label
                 return (
                   <td key={j}>
-                    <input className="plai-input" value={cellule} maxLength={MAX_CELLULE} disabled={verrouille}
+                    <input className="plai-input" style={{ minWidth: '11rem' }} value={cellule} maxLength={MAX_CELLULE} disabled={verrouille}
                       aria-label={`Ligne ${i + 1} : ${libelle}`}
                       placeholder={j === 0 ? 'un cartable ouvert sur un bureau' : colonne.placeholder}
                       onChange={(e) => { setSerie(majCellule(serie, i, j, e.target.value)); setEtats([]) }} />
@@ -171,6 +172,7 @@ export default function SerieForm({ serie, setSerie, gabarit, verrous, regime, u
           ))}
         </tbody>
       </table>
+      </div>
 
       <div className="img-actions" style={{ marginTop: '0.75rem' }}>
         <button type="button" className="plai-btn plai-btn-ghost" disabled={verrouille || serie.lignes.length >= PLAFOND_SERIE}
