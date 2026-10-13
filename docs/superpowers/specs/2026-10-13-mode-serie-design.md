@@ -56,8 +56,8 @@ Tableau :
 Pour chaque ligne non vide, dans l'ordre :
 1. `generer(gabaritPourLigne(...), null)` puis `suivre(id)`.
 2. État de ligne : `attente`, `cours`, `fini` (avec miniature), `echec` (avec message), `non_lancee`.
-3. Arrêt du lot et lignes restantes en `non_lancee` pour les codes : `quota_user`, `quota_global`, `trial_over`, `no_credits`, `invalid_key`, `terms`, `email_unconfirmed`, `busy`. Messages via `messageErreur`.
-4. Échec isolé (`moderated`, `failed`, `timeout`, `provider_error`) : la ligne passe en `echec`, le lot continue.
+3. Arrêt du lot (la ligne bloquée et les suivantes en `non_lancee`) pour les codes : `quota_user`, `quota_global`, `trial_over`, `no_credits`, `invalid_key`, `key_unreadable`, `terms`, `email_unconfirmed`, `busy`, `rate_limited`. Messages via `messageErreur`.
+4. Échec isolé (`moderated`, `failed`, `provider_error`) : la ligne passe en `echec`, le lot continue. Délai dépassé (`timeout`) : la ligne passe en `a_verifier` (l'image peut encore aboutir, visible dans l'Historique), le lot continue, et cette ligne n'est pas relancée automatiquement pour ne pas débiter le quota deux fois.
 5. « Arrêter après l'image en cours » : positionne `arret`, le lot s'interrompt entre deux images.
 6. « Relancer les lignes en échec ou non lancées » : ne relance que ces lignes, les images réussies ne sont pas refaites (et ne sont pas re-débitées du quota).
 7. Alerte `beforeunload` pendant l'exécution.
