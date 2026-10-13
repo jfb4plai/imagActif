@@ -2,7 +2,8 @@ import { joursRestants } from '../lib/dates.js'
 import { TRIAL_DAYS } from '../lib/regime.js'
 import { trialEnd } from '../lib/regime.js'
 
-const LIMITE = Number(import.meta.env.VITE_TRIAL_DAILY_LIMIT) || 10
+export const LIMITE_ESSAI = Number(import.meta.env.VITE_TRIAL_DAILY_LIMIT) || 10
+const LIMITE = LIMITE_ESSAI
 
 export default function BandeauRegime({ regime, compte, usage }) {
   if (regime === 'own') {
